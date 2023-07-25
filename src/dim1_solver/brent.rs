@@ -1,16 +1,16 @@
-use crate::{dim1_func::Dim1Func, scalar::base_float::BaseFloat};
-
 use super::Dim1Solver;
+use crate::{base_float::BaseFloat, dim1_func::Dim1Func};
+use core_float::core_float_traits::CoreFloat;
 
 pub struct BrentSolver<T: PartialEq + PartialOrd> {
     search_range: [T; 2],
     error_tolerance: T,
 }
 
-impl<T: BaseFloat> BrentSolver<T> {
+impl<T: CoreFloat> BrentSolver<T> {
     pub fn new(search_range: [T; 2], error_tolerance: T) -> Self {
         assert!(search_range[0] < search_range[1]);
-        assert!(error_tolerance > T::epsilon());
+        assert!(error_tolerance > T::EPSILON);
         Self {
             search_range,
             error_tolerance,
@@ -153,8 +153,8 @@ impl<T: BaseFloat> Dim1Solver<T> for BrentSolver<T> {
     }
 }
 
-fn inverse_quadratic_iterpolate<T: BaseFloat>(xy_pairs: &[XYPair<T>; 3]) -> T {
-    let one = T::from(1_f32);
+fn inverse_quadratic_iterpolate<T: CoreFloat>(xy_pairs: &[XYPair<T>; 3]) -> T {
+    let one = T::ONE;
     let (a, fa) = (xy_pairs[0].x, xy_pairs[0].y);
     let (b, fb) = (xy_pairs[1].x, xy_pairs[1].y);
     let (c, fc) = (xy_pairs[2].x, xy_pairs[2].y);
@@ -166,7 +166,7 @@ fn inverse_quadratic_iterpolate<T: BaseFloat>(xy_pairs: &[XYPair<T>; 3]) -> T {
 }
 
 // Method of False Position
-fn secant_iter<T: BaseFloat>(xy_pairs: &[XYPair<T>; 2]) -> T {
+fn secant_iter<T: CoreFloat>(xy_pairs: &[XYPair<T>; 2]) -> T {
     let (a, fa) = (xy_pairs[0].x, xy_pairs[0].y);
     let (b, fb) = (xy_pairs[1].x, xy_pairs[1].y);
     // assume b > a

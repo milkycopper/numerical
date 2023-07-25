@@ -1,6 +1,5 @@
-use crate::scalar::base_float::BaseFloat;
-
 use super::Dim1Solver;
+use crate::base_float::BaseFloat;
 
 pub struct FixedPointSolver<T> {
     start_point: T,

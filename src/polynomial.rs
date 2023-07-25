@@ -1,8 +1,8 @@
 use crate::{
     dim1_func::Dim1Func,
-    scalar::base_float::BaseFloat,
     tensor::vector::{Len, VecStorage, Vector},
 };
+use core_float::core_float_traits::CoreFloat;
 
 /// TODO: impl Display for Polynomial (issue: [1](https://github.com/UnrealInReal/numerical/issues/1))
 pub struct Polynomial<T, S1: VecStorage<T>, S2: VecStorage<T>> {
@@ -15,7 +15,7 @@ impl<T, S1, S2> Polynomial<T, S1, S2>
 where
     S1: VecStorage<T>,
     S2: VecStorage<T>,
-    T: BaseFloat,
+    T: CoreFloat,
 {
     pub fn new(
         degree: usize,
@@ -67,7 +67,7 @@ impl<T, S1, S2> Dim1Func<T> for Polynomial<T, S1, S2>
 where
     S1: VecStorage<T>,
     S2: VecStorage<T>,
-    T: BaseFloat,
+    T: CoreFloat,
 {
     fn eval(&self, x: T) -> T {
         self.nest_mul(x)

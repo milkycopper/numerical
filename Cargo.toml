@@ -1,12 +1,13 @@
 [package]
 name = "numerical"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "Algorithm for numerical analysis"
 license = "MIT"
 authors = ["UnrealInReal <liuxiaonanbj@163.com>"]
 
 [dependencies]
+core_float = "0.1.2"
 log = "0.4"
 
 [dev-dependencies]

@@ -1,7 +1,7 @@
 use numerical::{
+    base_float::BaseFloat,
     dim1_solver::{bisection::BisectionSolver, Dim1Solver},
     polynomial::PolynomialInnerVec,
-    scalar::base_float::BaseFloat,
     tensor::vector::Vector,
 };
 

@@ -1,4 +1,5 @@
-use crate::{dim1_func::Dim1Func, scalar::base_float::BaseFloat};
+use crate::{base_float::BaseFloat, dim1_func::Dim1Func};
+use core_float::core_float_traits::CoreFloat;
 
 use super::Dim1Solver;
 
@@ -7,10 +8,10 @@ pub struct BisectionSolver<T: PartialEq + PartialOrd> {
     error_tolerance: T,
 }
 
-impl<T: BaseFloat> BisectionSolver<T> {
+impl<T: CoreFloat> BisectionSolver<T> {
     pub fn new(search_range: [T; 2], error_tolerance: T) -> Self {
         assert!(search_range[0] < search_range[1]);
-        assert!(error_tolerance > T::epsilon());
+        assert!(error_tolerance > T::EPSILON);
         Self {
             search_range,
             error_tolerance,
@@ -25,7 +26,7 @@ impl<T: BaseFloat> Dim1Solver<T> for BisectionSolver<T> {
         assert!(func.eval(a).signum() * func.eval(b).signum() == -T::ONE);
 
         let mut iter_num: usize = 0;
-        while (b - a) > T::from(2.) * self.error_tolerance {
+        while (b - a) > T::TWO * self.error_tolerance {
             let c = (b + a).half();
             let yc = func.eval(c);
 

@@ -1,8 +1,8 @@
 use numerical::{
+    base_float::BaseFloat,
     dim1_func::Dim1Func,
     dim1_solver::{brent::BrentSolver, Dim1Solver},
     polynomial::PolynomialInnerVec,
-    scalar::base_float::BaseFloat,
     tensor::vector::Vector,
 };
 
