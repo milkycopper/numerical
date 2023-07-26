@@ -1,15 +1,16 @@
 [package]
 name = "numerical"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 description = "Algorithm for numerical analysis"
 license = "MIT"
 authors = ["milkycopper <liuhahapku@gmail.com>"]
 repository = "https://github.com/milkycopper/numerical"
+documentation = "https://docs.rs/numerical"
 readme = "README.md"
 
 [dependencies]
-core_float = "0.1.2"
+core_float = "0.2.0"
 log = "0.4"
 
 [dev-dependencies]
