@@ -11,7 +11,7 @@ use core_float::core_float_traits::CoreFloat;
 /// and (2) the bracketing interval is cut at least in half. If not, the Method of False Position
 /// is attempted with the same goal. If it fails as well, a Bisection Method
 /// step is taken, guaranteeing that the uncertainty is cut at least in half.
-pub struct BrentSolver<T: PartialEq + PartialOrd> {
+pub struct BrentSolver<T> {
     search_range: [T; 2],
     error_tolerance: T,
 }
