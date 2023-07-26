@@ -2,7 +2,6 @@ use numerical::{
     base_float::BaseFloat,
     dim1_solver::{bisection::BisectionSolver, Dim1Solver},
     polynomial::PolynomialInnerVec,
-    tensor::vector::Vector,
 };
 
 #[test]
@@ -17,7 +16,7 @@ fn test_bisection_0() {
 #[test]
 fn test_bisection_1() {
     let _ = env_logger::try_init();
-    let f = PolynomialInnerVec::from_coefficients(Vector::new(vec![2., -3., 1.]));
+    let f = PolynomialInnerVec::from_coefficients(vec![2., -3., 1.].into());
     let solver_a = BisectionSolver::new([-10., 1.5], 1e-5);
     let solver_b = BisectionSolver::new([1.5, 10.], 1e-5);
     let result_a = solver_a.solve(&f).unwrap();
@@ -29,7 +28,7 @@ fn test_bisection_1() {
 #[test]
 fn test_bisection_2() {
     let _ = env_logger::try_init();
-    let f = PolynomialInnerVec::from_coefficients(Vector::new(vec![-8. / 27., 4. / 3., -2., 1.]));
+    let f = PolynomialInnerVec::from_coefficients(vec![-8. / 27., 4. / 3., -2., 1.].into());
     let solver = BisectionSolver::new([0., 2.], 1e-14);
     let result = solver.solve(&f).unwrap();
     // large forward error

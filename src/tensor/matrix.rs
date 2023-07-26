@@ -2,6 +2,7 @@ use core::marker::PhantomData;
 use core::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub, SubAssign};
 use core_float::core_float_traits::CoreFloat;
 
+/// Index for 2D matrix
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Index2D {
     pub row: usize,

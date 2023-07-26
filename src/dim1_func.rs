@@ -1,4 +1,5 @@
 pub trait Dim1Func<T> {
+    /// Evaluate `f(x)` at `x`
     fn eval(&self, x: T) -> T;
 }
 

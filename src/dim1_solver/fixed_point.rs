@@ -1,6 +1,13 @@
 use super::Dim1Solver;
 use crate::base_float::BaseFloat;
 
+/// A [`FixedPointSolver`] which implemented the [`Dim1Solver`] using the
+/// fixed point iteration to solve the root of a one-dimensional function.
+///
+/// `FixedPointSolver` may not converge to a valid root,
+/// which makes the [`Dim1Solver::solve`] returns `None`
+///
+/// `FixedPointSolver` has the linear convergence.
 pub struct FixedPointSolver<T> {
     start_point: T,
     error_tolerance: T,
@@ -8,6 +15,14 @@ pub struct FixedPointSolver<T> {
 }
 
 impl<T> FixedPointSolver<T> {
+    /// FixedPointSolver constructor
+    ///
+    /// # Arguments
+    ///
+    /// * `start_point` - The start point of search, better if near the root
+    /// * `error_tolerance` - The error tolerance determines the accuracy of the root
+    /// * `max_iter_num` - The fixed point iteration may not converge to a valid root,
+    ///    so the iteration need to be stoped at the max iteration number
     pub fn new(start_point: T, error_tolerance: T, max_iter_num: usize) -> Self {
         Self {
             start_point,
@@ -27,7 +42,7 @@ impl<T: BaseFloat> Dim1Solver<T> for FixedPointSolver<T> {
             let relative_diff = diff / next.abs().max(T::ONE);
             root = next;
             if relative_diff < self.error_tolerance {
-                log::info!("Fixed Point Iteration Num = {i:?}");
+                log::info!("Fixed Point Iteration Num = {}", i + 1);
                 return Some(root);
             }
         }

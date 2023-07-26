@@ -1,1 +1,1 @@
-RUST_LOG=info cargo test -- --nocapture
+RUST_LOG=info cargo test -- --nocapture --test-threads 1

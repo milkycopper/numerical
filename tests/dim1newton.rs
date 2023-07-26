@@ -1,7 +1,6 @@
 use numerical::{
     dim1_solver::{dim1_newton::Dim1NewtonSolver, Dim1Solver},
     polynomial::PolynomialInnerVec,
-    tensor::vector::Vector,
 };
 
 #[test]
@@ -17,7 +16,7 @@ fn test_dim1_newton_0() {
 #[test]
 fn test_dim1_newton_1() {
     let _ = env_logger::try_init();
-    let g = PolynomialInnerVec::from_coefficients(Vector::new(vec![-1., 1., 0., 1.]));
+    let g = PolynomialInnerVec::from_coefficients(vec![-1., 1., 0., 1.].into());
     let dg = |x: f64| 3. * (x * x) + 1.;
     let solver = Dim1NewtonSolver::new(10., 1e-14, 100, &g, &dg);
     let result = solver.solve(&g).unwrap();
@@ -27,7 +26,7 @@ fn test_dim1_newton_1() {
 #[test]
 fn test_dim1_newton_2() {
     let _ = env_logger::try_init();
-    let g = PolynomialInnerVec::from_coefficients(Vector::new(vec![-11. / 4., 0., -6., 0., 4.]));
+    let g = PolynomialInnerVec::from_coefficients(vec![-11. / 4., 0., -6., 0., 4.].into());
     let dg = |x: f64| 16. * (x * x * x) - 12. * x;
     let solver = Dim1NewtonSolver::new(0.5, 1e-14, 100, &g, &dg);
     assert!(solver.solve(&g).is_none());
