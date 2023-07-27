@@ -102,3 +102,17 @@ fn test_matrix_ops_2() {
     mat_0.sub_assign(&mat_1);
     assert!(mat_0 == mat_1);
 }
+
+#[test]
+fn test_matrix_display() {
+    let inner = vec![1., 2., 3., 4., 5., 6., 7., 8., 9.];
+    let mat = Matrix::<f64, Vec<f64>>::new((3, 3).into(), inner);
+    assert!(
+        format!("{mat}")
+            == "[
+[1, 2, 3],
+[4, 5, 6],
+[7, 8, 9]
+]"
+    );
+}

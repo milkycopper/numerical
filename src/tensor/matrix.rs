@@ -1,6 +1,7 @@
 use core::marker::PhantomData;
 use core::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub, SubAssign};
 use core_float::core_float_traits::CoreFloat;
+use std::fmt::Display;
 
 pub mod inner_vec;
 pub use inner_vec::MatrixInnerVec;
@@ -242,5 +243,31 @@ where
     type Output = Self;
     fn mul(self, rhs: Rhs) -> Self::Output {
         <Self as MatrixOps<T>>::mul(&self, &rhs)
+    }
+}
+
+impl<T, S> Display for Matrix<T, S>
+where
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "[")?;
+        for i in 0..self.row_size() {
+            write!(f, "[")?;
+            for j in 0..self.col_size() {
+                write!(f, "{}", self[(i, j).into()])?;
+                if j != self.col_size() - 1 {
+                    write!(f, ", ")?;
+                }
+            }
+            write!(f, "]")?;
+            if i != self.row_size() - 1 {
+                writeln!(f, ",")?;
+            }
+        }
+        write!(f, "\n]")?;
+
+        Ok(())
     }
 }
