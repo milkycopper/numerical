@@ -47,10 +47,9 @@ fn test_brent_2() {
 }
 
 #[test]
+#[should_panic(expected = "Illegal initial guess")]
 fn test_brent_illegal_range() {
-    let _ = env_logger::try_init();
     let f = PolynomialInnerVec::<f32>::from_coefficients(vec![1., -2., 1.].into());
     let solver = BrentSolver::new([0., 2.], 1e-6);
-    let result = std::panic::catch_unwind(|| solver.solve(&f));
-    assert!(result.is_err());
+    solver.solve(&f);
 }
