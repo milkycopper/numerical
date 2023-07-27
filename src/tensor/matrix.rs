@@ -2,6 +2,9 @@ use core::marker::PhantomData;
 use core::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub, SubAssign};
 use core_float::core_float_traits::CoreFloat;
 
+pub mod inner_vec;
+pub use inner_vec::MatrixInnerVec;
+
 /// Index for 2D matrix
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Index2D {
@@ -27,7 +30,7 @@ impl From<(usize, usize)> for Index2D {
 pub trait MatrixShape {
     fn row_size(&self) -> usize;
     fn col_size(&self) -> usize;
-    fn square_dimention(&self) -> Option<usize> {
+    fn square_dimension(&self) -> Option<usize> {
         if self.row_size() == self.col_size() {
             Some(self.row_size())
         } else {
@@ -42,6 +45,7 @@ pub trait MatrixShape {
     }
 }
 
+/// Operations for matrix
 pub trait MatrixOps<T: CoreFloat>:
     MatrixShape + Index<Index2D, Output = T> + IndexMut<Index2D> + Clone
 {
@@ -51,7 +55,7 @@ pub trait MatrixOps<T: CoreFloat>:
         self.shape() == rhs.shape()
     }
 
-    fn add(&self, rhs: &impl MatrixOps<T>) -> Self {
+    fn add(&self, rhs: &Self) -> Self {
         assert!(self.shape_eq(rhs));
         let mut mat = Self::default_with_shape(self.shape());
         for row in 0..self.row_size() {
@@ -63,7 +67,7 @@ pub trait MatrixOps<T: CoreFloat>:
         mat
     }
 
-    fn add_assign(&mut self, rhs: &impl MatrixOps<T>) {
+    fn add_assign(&mut self, rhs: &Self) {
         assert!(self.shape_eq(rhs));
         for row in 0..self.row_size() {
             for col in 0..self.col_size() {
@@ -72,7 +76,7 @@ pub trait MatrixOps<T: CoreFloat>:
         }
     }
 
-    fn sub(&self, rhs: &impl MatrixOps<T>) -> Self {
+    fn sub(&self, rhs: &Self) -> Self {
         assert!(self.shape_eq(rhs));
         let mut mat = Self::default_with_shape(self.shape());
         for row in 0..self.row_size() {
@@ -84,7 +88,7 @@ pub trait MatrixOps<T: CoreFloat>:
         mat
     }
 
-    fn sub_assign(&mut self, rhs: &impl MatrixOps<T>) {
+    fn sub_assign(&mut self, rhs: &Self) {
         assert!(self.shape_eq(rhs));
         for row in 0..self.row_size() {
             for col in 0..self.col_size() {
@@ -108,6 +112,11 @@ pub trait MatrixOps<T: CoreFloat>:
     }
 }
 
+/// 2D matrix represented by its shape and inner storage
+///
+/// # Generic
+/// - T - Element type
+/// - S - Inner storage type
 #[derive(Clone, PartialEq, Eq)]
 pub struct Matrix<T, S> {
     shape: Index2D,
@@ -116,6 +125,12 @@ pub struct Matrix<T, S> {
 }
 
 impl<T, S> Matrix<T, S> {
+    /// Matrix constructor
+    ///
+    /// # Arguments
+    ///
+    /// * `shape` - The 2D shape of matrix
+    /// * `storage` - storage of matrix elements
     pub fn new(shape: Index2D, storage: S) -> Self {
         Self {
             shape,
@@ -134,98 +149,96 @@ impl<T, S> MatrixShape for Matrix<T, S> {
     }
 }
 
-impl<T> Index<Index2D> for Matrix<T, Vec<T>> {
-    type Output = T;
-
-    fn index(&self, index: Index2D) -> &Self::Output {
-        &self.inner[index.to_1d(self.col_size())]
-    }
-}
-
-impl<T> IndexMut<Index2D> for Matrix<T, Vec<T>> {
-    fn index_mut(&mut self, index: Index2D) -> &mut Self::Output {
-        let index1d = index.to_1d(self.col_size());
-        &mut self.inner[index1d]
-    }
-}
-
-impl<T: CoreFloat> MatrixOps<T> for Matrix<T, Vec<T>> {
-    fn default_with_shape(shape: Index2D) -> Self {
-        Self::new(shape, vec![T::ZERO; shape.col * shape.row])
-    }
-}
-
-impl<T: CoreFloat> Add for Matrix<T, Vec<T>> {
+impl<T, S> Add for Matrix<T, S>
+where
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
-        assert!(self.shape_eq(&rhs));
-        let mut mat = Self::default_with_shape(self.shape());
-        for i in 0..(self.row_size() * self.col_size()) {
-            mat.inner[i] = self.inner[i] + rhs.inner[i];
-        }
-
-        mat
+        <Self as MatrixOps<T>>::add(&self, &rhs)
     }
 }
 
-impl<T: CoreFloat> Add<&Self> for Matrix<T, Vec<T>> {
+impl<T, S> Add<&Self> for Matrix<T, S>
+where
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
     type Output = Self;
     fn add(self, rhs: &Self) -> Self::Output {
-        assert!(self.shape_eq(rhs));
-        let mut mat = Self::default_with_shape(self.shape());
-        for i in 0..(self.row_size() * self.col_size()) {
-            mat.inner[i] = self.inner[i] + rhs.inner[i];
-        }
-
-        mat
+        <Self as MatrixOps<T>>::add(&self, rhs)
     }
 }
 
-impl<T: CoreFloat> AddAssign<&Self> for Matrix<T, Vec<T>> {
+impl<T, S> AddAssign for Matrix<T, S>
+where
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
+    fn add_assign(&mut self, rhs: Self) {
+        <Self as MatrixOps<T>>::add_assign(self, &rhs);
+    }
+}
+
+impl<T, S> AddAssign<&Self> for Matrix<T, S>
+where
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
     fn add_assign(&mut self, rhs: &Self) {
-        assert!(self.shape_eq(rhs));
-        for i in 0..(self.row_size() * self.col_size()) {
-            self.inner[i] = self.inner[i] + rhs.inner[i];
-        }
+        <Self as MatrixOps<T>>::add_assign(self, rhs);
     }
 }
 
-impl<T: CoreFloat> Sub for Matrix<T, Vec<T>> {
+impl<T, S> Sub for Matrix<T, S>
+where
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
-        assert!(self.shape_eq(&rhs));
-        let mut mat = Self::default_with_shape(self.shape());
-        for i in 0..(self.row_size() * self.col_size()) {
-            mat.inner[i] = self.inner[i] - rhs.inner[i];
-        }
-
-        mat
+        <Self as MatrixOps<T>>::sub(&self, &rhs)
     }
 }
 
-impl<T: CoreFloat> Sub<&Self> for Matrix<T, Vec<T>> {
+impl<T, S> Sub<&Self> for Matrix<T, S>
+where
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
     type Output = Self;
     fn sub(self, rhs: &Self) -> Self::Output {
-        assert!(self.shape_eq(rhs));
-        let mut mat = Self::default_with_shape(self.shape());
-        for i in 0..(self.row_size() * self.col_size()) {
-            mat.inner[i] = self.inner[i] - rhs.inner[i];
-        }
-
-        mat
+        <Self as MatrixOps<T>>::sub(&self, rhs)
     }
 }
 
-impl<T: CoreFloat> SubAssign<&Self> for Matrix<T, Vec<T>> {
+impl<T, S> SubAssign for Matrix<T, S>
+where
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
+    fn sub_assign(&mut self, rhs: Self) {
+        <Self as MatrixOps<T>>::sub_assign(self, &rhs);
+    }
+}
+
+impl<T, S> SubAssign<&Self> for Matrix<T, S>
+where
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
     fn sub_assign(&mut self, rhs: &Self) {
-        assert!(self.shape_eq(rhs));
-        for i in 0..(self.row_size() * self.col_size()) {
-            self.inner[i] = self.inner[i] - rhs.inner[i];
-        }
+        <Self as MatrixOps<T>>::sub_assign(self, rhs);
     }
 }
 
-impl<T: CoreFloat, Rhs: MatrixOps<T>> Mul<Rhs> for Matrix<T, Vec<T>> {
+impl<T, S, Rhs> Mul<Rhs> for Matrix<T, S>
+where
+    Rhs: MatrixOps<T>,
+    T: CoreFloat,
+    Matrix<T, S>: MatrixOps<T>,
+{
     type Output = Self;
     fn mul(self, rhs: Rhs) -> Self::Output {
         <Self as MatrixOps<T>>::mul(&self, &rhs)
