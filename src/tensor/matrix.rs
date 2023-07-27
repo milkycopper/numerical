@@ -4,7 +4,7 @@ use core_float::core_float_traits::CoreFloat;
 use std::fmt::Display;
 
 pub mod inner_vec;
-pub use inner_vec::MatrixInnerVec;
+pub use inner_vec::MatrixInnerFullVec;
 
 /// Index for 2D matrix
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

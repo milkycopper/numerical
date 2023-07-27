@@ -1,8 +1,25 @@
 use super::{Index2D, Matrix, MatrixOps, MatrixShape};
-use core::ops::{Index, IndexMut};
+use core::ops::{Deref, DerefMut, Index, IndexMut};
+
 use core_float::CoreFloat;
 
-impl<T> Index<Index2D> for Matrix<T, Vec<T>> {
+#[derive(Clone, Eq, PartialEq)]
+pub struct FullVec<T>(Vec<T>);
+
+impl<T> Deref for FullVec<T> {
+    type Target = Vec<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for FullVec<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<T> Index<Index2D> for Matrix<T, FullVec<T>> {
     type Output = T;
 
     fn index(&self, index: Index2D) -> &Self::Output {
@@ -10,16 +27,16 @@ impl<T> Index<Index2D> for Matrix<T, Vec<T>> {
     }
 }
 
-impl<T> IndexMut<Index2D> for Matrix<T, Vec<T>> {
+impl<T> IndexMut<Index2D> for Matrix<T, FullVec<T>> {
     fn index_mut(&mut self, index: Index2D) -> &mut Self::Output {
         let index1d = index.to_1d(self.col_size());
         &mut self.inner[index1d]
     }
 }
 
-impl<T: CoreFloat> MatrixOps<T> for Matrix<T, Vec<T>> {
+impl<T: CoreFloat> MatrixOps<T> for Matrix<T, FullVec<T>> {
     fn default_with_shape(shape: Index2D) -> Self {
-        Self::new(shape, vec![T::ZERO; shape.col * shape.row])
+        Self::new(shape, FullVec(vec![T::ZERO; shape.col * shape.row]))
     }
 
     fn add(&self, rhs: &Self) -> Self {
@@ -57,4 +74,10 @@ impl<T: CoreFloat> MatrixOps<T> for Matrix<T, Vec<T>> {
     }
 }
 
-pub type MatrixInnerVec<T> = Matrix<T, Vec<T>>;
+pub type MatrixInnerFullVec<T> = Matrix<T, FullVec<T>>;
+
+impl<T> MatrixInnerFullVec<T> {
+    pub fn new_with_vec(shape: Index2D, v: Vec<T>) -> Self {
+        Self::new(shape, FullVec(v))
+    }
+}
