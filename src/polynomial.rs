@@ -1,6 +1,6 @@
 use crate::{
     dim1_func::Dim1Func,
-    tensor::vector::{LinearStorageLen, VecStorage, Vector},
+    tensor::vector::{VecStorage, Vector},
 };
 use core_float::core_float_traits::CoreFloat;
 
@@ -51,8 +51,7 @@ where
     /// }
     /// ```
     pub fn new(coefficients: Vector<T, S1>, base_points: Option<Vector<T, S2>>) -> Self {
-        let coefficients_len = coefficients.len();
-        assert!(coefficients_len > 0);
+        assert!(!coefficients.is_empty());
 
         let degree = coefficients.len() - 1;
         assert!(base_points.is_none() || base_points.as_ref().unwrap().len() == degree);

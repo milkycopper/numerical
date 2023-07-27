@@ -70,3 +70,15 @@ fn test_eval_0() {
     let y = poly.eval(1.);
     assert!(y == 0.);
 }
+
+#[test]
+fn test_eval_1() {
+    let poly = PolynomialInnerVec::<f32>::from_coefficients_base_points(
+        vec![1., 0.5, 0.5, -0.5].into(),
+        vec![0., 2., 3.].into(),
+    );
+    let f = |x: f32| 1. + x * (0.5 + (x - 2.) * (0.5 + (x - 3.) * (-0.5)));
+    for x in [-99., -9., -0.9, 0.7, 7., 77.] {
+        assert!(poly.eval(x) == f(x))
+    }
+}

@@ -64,31 +64,6 @@ impl<T, S: VecStorage<T>> Vector<T, S> {
     }
 }
 
-impl<T, S: VecStorage<T>> LinearStorageLen for Vector<T, S> {
-    fn is_empty(&self) -> bool {
-        self.inner.is_empty()
-    }
-    fn len(&self) -> usize {
-        self.inner.len()
-    }
-}
-
-impl<T, S: VecStorage<T>> Index<usize> for Vector<T, S> {
-    type Output = T;
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.inner[index]
-    }
-}
-
-impl<T, S: VecStorage<T>> IndexMut<usize> for Vector<T, S>
-where
-    S: IndexMut<usize> + Index<usize, Output = T>,
-{
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.inner[index]
-    }
-}
-
 impl<T, S: VecStorage<T>> Deref for Vector<T, S> {
     type Target = S;
 
