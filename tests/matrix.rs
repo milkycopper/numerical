@@ -1,4 +1,4 @@
-use numerical::tensor::matrix::{MatrixInnerFullVec, MatrixOps, MatrixShape};
+use numerical::tensor::matrix::{MatrixBaseOps, MatrixInnerFullVec};
 
 #[test]
 fn test_matrix_ops_0() {
@@ -16,25 +16,25 @@ fn test_matrix_ops_0() {
 #[test]
 fn test_matrix_ops_1() {
     let inner_0 = vec![1., 2., 3., 4., 5., 6., 7., 8., 9.];
-    let inner_1 = vec![1., 2., 3., 4., 5., 6., 7., 8., 9.];
+    let inner_1 = vec![2., 3., 4., 5., 6., 7., 8., 9., 10.];
     let inner_2 = vec![1., 2., 3.];
-    let inner_3 = vec![30., 36., 42., 66., 81., 96., 102., 126., 150.];
+    let inner_3 = vec![35., 40., 45., 77., 91., 105., 119., 142., 165.];
 
     let mat_0 = MatrixInnerFullVec::new_with_vec((3, 3).into(), inner_0.clone());
     let mat_1 = MatrixInnerFullVec::new_with_vec((3, 3).into(), inner_1.clone());
     let mat_2 = MatrixInnerFullVec::new_with_vec((3, 1).into(), inner_2.clone());
     let mat_3 = MatrixInnerFullVec::new_with_vec((3, 3).into(), inner_3.clone());
 
-    assert!(mat_0 == mat_1);
-    assert!(mat_0.mul(&mat_1) == mat_3);
+    assert!(mat_0 != mat_1);
+    assert!(mat_0.mul(&mat_1) - mat_0.clone() == mat_3);
     assert!(
-        mat_0.clone() * mat_2.clone()
-            == MatrixInnerFullVec::new_with_vec((3, 1).into(), vec![30., 66., 102.])
+        mat_0.clone() * &mat_2
+            == MatrixInnerFullVec::new_with_vec((3, 1).into(), vec![14., 32., 50.])
     );
 
     assert!(
         mat_0.clone()
-            * MatrixInnerFullVec::new_with_vec((3, 2).into(), vec![1., 2., 4., 5., 7., 8.])
+            * &MatrixInnerFullVec::new_with_vec((3, 2).into(), vec![1., 2., 4., 5., 7., 8.])
             == MatrixInnerFullVec::new_with_vec(
                 (3, 2).into(),
                 vec![30., 36., 66., 81., 102., 126.]
@@ -45,12 +45,12 @@ fn test_matrix_ops_1() {
         mat_0.clone() + mat_1.clone()
             == MatrixInnerFullVec::new_with_vec(
                 (3, 3).into(),
-                inner_0.iter().map(|x| 2. * x).collect()
+                inner_0.iter().map(|x| 2. * x + 1.).collect()
             )
     );
 
     assert!(
-        mat_0.clone().add(&mat_1.clone())
+        mat_0.clone().add(&mat_0.clone())
             == MatrixInnerFullVec::new_with_vec(
                 (3, 3).into(),
                 inner_0.iter().map(|x| 2. * x).collect()
@@ -61,7 +61,7 @@ fn test_matrix_ops_1() {
         mat_3.clone() - mat_0.clone()
             == MatrixInnerFullVec::new_with_vec(
                 (3, 3).into(),
-                vec![29., 34., 39., 62., 76., 90., 95., 118., 141.]
+                vec![34., 38., 42., 73., 86., 99., 112., 134., 156.]
             )
     );
 
@@ -69,7 +69,7 @@ fn test_matrix_ops_1() {
         mat_3.clone().sub(&mat_0.clone())
             == MatrixInnerFullVec::new_with_vec(
                 (3, 3).into(),
-                vec![29., 34., 39., 62., 76., 90., 95., 118., 141.]
+                vec![34., 38., 42., 73., 86., 99., 112., 134., 156.]
             )
     );
 }
