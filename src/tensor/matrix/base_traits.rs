@@ -11,6 +11,31 @@ pub trait MatrixBaseOps<T: CoreFloat>: Index<Index2D, Output = T> {
     fn mul(&self, rhs: &Self) -> Self;
 }
 
+/// Trait for square matrix
+pub trait Square {
+    fn size(&self) -> usize;
+}
+
+macro_rules! impl_index_usize_tuple {
+    ($m: ty) => {
+        impl<T: CoreFloat> Index<(usize, usize)> for $m {
+            type Output = T;
+
+            fn index(&self, index: (usize, usize)) -> &Self::Output {
+                &self[Index2D::from(index)]
+            }
+        }
+
+        impl<T: CoreFloat> IndexMut<(usize, usize)> for $m {
+            fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+                &mut self[Index2D::from(index)]
+            }
+        }
+    };
+}
+
+pub(super) use impl_index_usize_tuple;
+
 mod traits_impl {
     use super::{super::Matrix, MatrixBaseOps};
     use core::fmt::Display;
@@ -36,6 +61,17 @@ mod traits_impl {
         type Output = Self;
         fn add(self, rhs: &Self) -> Self::Output {
             <Self as MatrixBaseOps<T>>::add(&self, rhs)
+        }
+    }
+
+    impl<'a, T, S> Add<Self> for &'a Matrix<T, S>
+    where
+        T: CoreFloat,
+        Matrix<T, S>: MatrixBaseOps<T>,
+    {
+        type Output = Matrix<T, S>;
+        fn add(self, rhs: Self) -> Self::Output {
+            MatrixBaseOps::<T>::add(self, rhs)
         }
     }
 
@@ -81,6 +117,17 @@ mod traits_impl {
         }
     }
 
+    impl<'a, T, S> Sub<Self> for &'a Matrix<T, S>
+    where
+        T: CoreFloat,
+        Matrix<T, S>: MatrixBaseOps<T>,
+    {
+        type Output = Matrix<T, S>;
+        fn sub(self, rhs: Self) -> Self::Output {
+            MatrixBaseOps::<T>::sub(self, rhs)
+        }
+    }
+
     impl<T, S> SubAssign for Matrix<T, S>
     where
         T: CoreFloat,
@@ -109,6 +156,17 @@ mod traits_impl {
         type Output = Self;
         fn mul(self, rhs: &Self) -> Self::Output {
             <Self as MatrixBaseOps<T>>::mul(&self, rhs)
+        }
+    }
+
+    impl<'a, T, S> Mul<Self> for &'a Matrix<T, S>
+    where
+        T: CoreFloat,
+        Matrix<T, S>: MatrixBaseOps<T>,
+    {
+        type Output = Matrix<T, S>;
+        fn mul(self, rhs: Self) -> Self::Output {
+            MatrixBaseOps::<T>::mul(self, rhs)
         }
     }
 

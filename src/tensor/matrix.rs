@@ -1,11 +1,16 @@
 mod base_traits;
+mod full_inner_vec;
 mod index2d;
-mod inner_full_vec;
+mod lt_inner_vec;
+mod ut_inner_vec;
 
-pub use base_traits::MatrixBaseOps;
+pub use base_traits::{MatrixBaseOps, Square};
+pub use full_inner_vec::MatrixFullInnerVec;
 pub use index2d::Index2D;
-pub use inner_full_vec::MatrixInnerFullVec;
+pub use lt_inner_vec::MatrixLTVec;
+pub use ut_inner_vec::MatrixUTVec;
 
+use base_traits::impl_index_usize_tuple;
 use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut};
 
