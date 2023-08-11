@@ -1,4 +1,7 @@
-use numerical::tensor::matrix::{MatrixBaseOps, MatrixSquareFullVec, Square};
+use approx::AbsDiffEq;
+use numerical::tensor::matrix::{
+    LUFactorization, MatrixBaseOps, MatrixLTVec, MatrixSquareFullVec, MatrixUTVec, Square,
+};
 
 #[test]
 fn test_matrix_ops_0() {
@@ -92,4 +95,66 @@ fn test_matrix_display() {
 [7, 8, 9]
 ]"
     );
+}
+
+#[test]
+fn test_matrix_transpose() {
+    let inner = vec![1., 2., 3., 4., 5., 6., 7., 8., 9.];
+    let mat = MatrixSquareFullVec::new_with_vec(3, inner);
+    assert!(
+        format!("{}", mat.transpose())
+            == "[
+[1, 4, 7],
+[2, 5, 8],
+[3, 6, 9]
+]"
+    );
+}
+
+#[test]
+fn test_lu_factorization() {
+    let mat = MatrixSquareFullVec::new_with_vec(3, vec![1., 2., -1., 2., 1., -2., -3., 1., 1.]);
+    let (lt, ut) = mat.lu();
+    assert!(lt.abs_diff_eq(
+        &MatrixLTVec::new_with_vec(3, vec![1., 2., 1., -3., -7. / 3., 1.]),
+        f64::EPSILON * 2.
+    ));
+    assert!(ut.abs_diff_eq(
+        &MatrixUTVec::new_with_vec(3, vec![1., 2., -1., -3., 0., -2.]),
+        f64::EPSILON * 2.
+    ));
+    let mul_res = MatrixSquareFullVec::from(lt) * &MatrixSquareFullVec::from(ut);
+    assert!(mul_res.abs_diff_eq(&mat, f64::EPSILON * 4.));
+
+    let mat = MatrixSquareFullVec::new_with_vec(
+        4,
+        vec![
+            1., -1., 1., 2., 0., 2., 1., 0., 1., 3., 4., 4., 0., 2., 1., -1.,
+        ],
+    );
+    let (lt, ut) = mat.lu();
+    let mul_res = MatrixSquareFullVec::from(lt) * &MatrixSquareFullVec::from(ut);
+    assert!(mul_res.abs_diff_eq(&mat, f64::EPSILON * 4.));
+
+    let mat = MatrixSquareFullVec::new_with_vec(
+        5,
+        vec![
+            1., -1., 1., 2., 8.2, 0.99, 2., 1., 0.134, 2.9, 1.65, 3.34, 4.93, 4., 3.7, 0.24, 2.,
+            1., -1., 4.4, 1., 2., 3., 4., 5.,
+        ],
+    );
+    let (lt, ut) = mat.lu();
+    let mul_res = MatrixSquareFullVec::from(lt) * &MatrixSquareFullVec::from(ut);
+    assert!(mul_res.abs_diff_eq(&mat, f64::EPSILON * 4.));
+
+    let mat = MatrixSquareFullVec::new_with_vec(
+        5,
+        vec![
+            1f32, -1., 1., 2., 8.2, 0.99, 2., 1., 0.134, 2.9, 1.65, 3.34, 4.93, 4., 3.7, 0.24, 2.,
+            1., -1., 4.4, 1., 2., 3., 4., 5.,
+        ],
+    );
+    let (lt, ut) = mat.lu();
+    let mul_res = MatrixSquareFullVec::from(lt) * &MatrixSquareFullVec::from(ut);
+    assert!(mul_res.abs_diff_eq(&mat, f32::EPSILON * 4.));
 }

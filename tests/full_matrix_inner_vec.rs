@@ -107,3 +107,29 @@ fn test_matrix_display() {
 ]"
     );
 }
+
+#[test]
+fn test_matrix_transpose() {
+    let inner = vec![1., 2., 3., 4., 5., 6., 7., 8., 9.];
+    let mat = MatrixFullVec::new_with_vec((3, 3).into(), inner);
+    assert!(
+        format!("{}", mat.transpose())
+            == "[
+[1, 4, 7],
+[2, 5, 8],
+[3, 6, 9]
+]"
+    );
+}
+
+#[test]
+fn test_matrix_row_by_row_iter() {
+    let inner = vec![1., 2., 3., 4., 5., 6., 7., 8., 9.];
+    let mat = MatrixFullVec::new_with_vec((3, 3).into(), inner);
+    let mut x = 0f64;
+
+    for e in mat.row_by_row_iter() {
+        x += 1.;
+        assert!(x == e);
+    }
+}

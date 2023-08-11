@@ -87,10 +87,24 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, FullVec<T>> {
 /// Matrix whose inner storage type is `FullVec`
 pub type MatrixFullVec<T> = Matrix<T, FullVec<T>>;
 
-impl<T> MatrixFullVec<T> {
+impl<T: CoreFloat> MatrixFullVec<T> {
     pub fn new_with_vec(shape: Index2D, v: Vec<T>) -> Self {
         debug_assert!(shape.area_size() == v.len());
         Self::new(shape, FullVec(v))
+    }
+
+    pub fn transpose(&self) -> Self {
+        let mut m = Self::new_with_vec(
+            self.shape.transpose(),
+            vec![T::ZERO; self.shape.area_size()],
+        );
+        for j in 0..self.col_size() {
+            for i in 0..self.row_size() {
+                m[(j, i)] = self[(i, j)];
+            }
+        }
+
+        m
     }
 }
 

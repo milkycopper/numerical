@@ -47,6 +47,15 @@ impl Index2D {
     pub const fn area_size(&self) -> usize {
         self.row * self.col
     }
+
+    /// exchange row and col
+    #[inline]
+    pub const fn transpose(&self) -> Self {
+        Self {
+            row: self.col,
+            col: self.row,
+        }
+    }
 }
 
 impl From<(usize, usize)> for Index2D {

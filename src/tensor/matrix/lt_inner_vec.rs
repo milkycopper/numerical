@@ -1,4 +1,4 @@
-use super::{base_traits::Square, index2d::Index2D, Matrix, MatrixBaseOps};
+use super::{base_traits::Square, index2d::Index2D, Matrix, MatrixBaseOps, MatrixUTVec};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 
 use core_float::CoreFloat;
@@ -109,6 +109,38 @@ impl<T: CoreFloat> MatrixLTVec<T> {
     pub fn new_with_vec(size: usize, v: Vec<T>) -> Self {
         debug_assert!(size * (size + 1) / 2 == v.len());
         Self::new((size, size).into(), LowerTriangularVec::from_vec(v))
+    }
+
+    pub fn transpose(&self) -> MatrixUTVec<T> {
+        let mut m = MatrixUTVec::new_with_vec(self.size(), vec![T::ZERO; self.elements_num()]);
+        for i in 0..self.size() {
+            for j in 0..=i {
+                m[(j, i)] = self[(i, j)];
+            }
+        }
+
+        m
+    }
+
+    pub fn extend_with_diagonal<I>(&self, diagonal: &mut I) -> Self
+    where
+        I: Iterator<Item = T>,
+    {
+        let size = self.size() + 1;
+
+        let mut m = MatrixLTVec::new_with_vec(size, vec![T::ZERO; self.elements_num() + size]);
+
+        for i in 0..size {
+            for j in 0..i {
+                m[(i, j)] = self[(i - 1, j)];
+            }
+
+            m[(i, i)] = diagonal.next().unwrap();
+        }
+
+        assert!(diagonal.next().is_none());
+
+        m
     }
 
     #[inline]

@@ -59,3 +59,33 @@ fn test_matrix_display() {
 ]"
     );
 }
+
+#[test]
+fn test_matrix_transpose() {
+    let inner = vec![1., 4., 5., 7., 8., 9.];
+    let mat = MatrixUTVec::new_with_vec(3, inner);
+    assert!(
+        format!("{}", mat.transpose())
+            == "[
+[1, 0, 0],
+[4, 7, 0],
+[5, 8, 9]
+]"
+    );
+}
+
+#[test]
+fn test_matrix_extend_with_diagonal() {
+    let inner = vec![1., 4., 5., 7., 8., 9.];
+    let mat = MatrixUTVec::new_with_vec(3, inner);
+    let mut diagonal = [10., 11., 12., 13.].into_iter();
+    assert!(
+        format!("{}", mat.extend_with_diagonal(&mut diagonal))
+            == "[
+[10, 1, 4, 5],
+[0, 11, 7, 8],
+[0, 0, 12, 9],
+[0, 0, 0, 13]
+]"
+    );
+}

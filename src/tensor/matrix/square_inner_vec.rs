@@ -1,4 +1,4 @@
-use super::{index2d::Index2D, Matrix, MatrixBaseOps, Square};
+use super::{index2d::Index2D, Matrix, MatrixBaseOps, MatrixLTVec, MatrixUTVec, Square};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 use core_float::CoreFloat;
 
@@ -86,10 +86,21 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, SquareFullVec<T>> {
 /// Matrix whose inner storage type is `SquareFullVec`
 pub type MatrixSquareFullVec<T> = Matrix<T, SquareFullVec<T>>;
 
-impl<T> MatrixSquareFullVec<T> {
+impl<T: CoreFloat> MatrixSquareFullVec<T> {
     pub fn new_with_vec(size: usize, v: Vec<T>) -> Self {
         debug_assert!(size * size == v.len());
         Self::new((size, size).into(), SquareFullVec(v))
+    }
+
+    pub fn transpose(&self) -> Self {
+        let mut m = Self::new_with_vec(self.size(), vec![T::ZERO; self.shape.area_size()]);
+        for j in 0..self.size() {
+            for i in 0..self.size() {
+                m[(j, i)] = self[(i, j)];
+            }
+        }
+
+        m
     }
 }
 
@@ -100,3 +111,31 @@ impl<T> Square for MatrixSquareFullVec<T> {
 }
 
 super::impl_index_usize_tuple!(MatrixSquareFullVec<T>);
+
+impl<T: CoreFloat> From<MatrixLTVec<T>> for MatrixSquareFullVec<T> {
+    fn from(lt: MatrixLTVec<T>) -> Self {
+        let n = lt.size();
+        let mut m = MatrixSquareFullVec::new_with_vec(n, vec![T::ZERO; n * n]);
+        for i in 0..n {
+            for j in 0..n {
+                m[(i, j)] = lt[(i, j)];
+            }
+        }
+
+        m
+    }
+}
+
+impl<T: CoreFloat> From<MatrixUTVec<T>> for MatrixSquareFullVec<T> {
+    fn from(lt: MatrixUTVec<T>) -> Self {
+        let n = lt.size();
+        let mut m = MatrixSquareFullVec::new_with_vec(n, vec![T::ZERO; n * n]);
+        for i in 0..n {
+            for j in 0..n {
+                m[(i, j)] = lt[(i, j)];
+            }
+        }
+
+        m
+    }
+}
