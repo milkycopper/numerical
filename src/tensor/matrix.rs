@@ -2,12 +2,14 @@ mod base_traits;
 mod full_inner_vec;
 mod index2d;
 mod lt_inner_vec;
+mod square_inner_vec;
 mod ut_inner_vec;
 
 pub use base_traits::{MatrixBaseOps, Square};
-pub use full_inner_vec::MatrixFullInnerVec;
+pub use full_inner_vec::MatrixFullVec;
 pub use index2d::Index2D;
 pub use lt_inner_vec::MatrixLTVec;
+pub use square_inner_vec::MatrixSquareFullVec;
 pub use ut_inner_vec::MatrixUTVec;
 
 use base_traits::impl_index_usize_tuple;
@@ -41,14 +43,17 @@ impl<T, S> Matrix<T, S> {
         }
     }
 
+    #[inline]
     pub const fn row_size(&self) -> usize {
         self.shape.row
     }
 
+    #[inline]
     pub const fn col_size(&self) -> usize {
         self.shape.col
     }
 
+    #[inline]
     pub const fn shape(&self) -> Index2D {
         Index2D {
             row: self.row_size(),
@@ -56,6 +61,12 @@ impl<T, S> Matrix<T, S> {
         }
     }
 
+    #[inline]
+    pub const fn is_square(&self) -> bool {
+        self.row_size() == self.col_size()
+    }
+
+    #[inline]
     pub fn shape_eq<S1>(&self, rhs: Matrix<T, S1>) -> bool {
         self.shape() == rhs.shape()
     }
