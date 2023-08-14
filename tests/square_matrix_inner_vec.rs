@@ -115,7 +115,7 @@ fn test_matrix_transpose() {
 }
 
 #[test]
-fn test_lu_factorization() {
+fn test_lu_factorization_0() {
     let mat = MatrixSquareFullVec::new_with_vec(3, vec![1., 2., -1., 2., 1., -2., -3., 1., 1.]);
     let (lt, ut) = mat.lu();
     assert!(lt.abs_diff_eq(
@@ -163,11 +163,55 @@ fn test_lu_factorization() {
 }
 
 #[test]
-fn test_lu_solve() {
+fn test_lu_factorization_1() {
+    let mat = MatrixSquareFullVec::new_with_vec(3, vec![3., 1., 2., 6., 1., 4., 3., 1., 5.]);
+    let (lt, ut) = mat.lu();
+    let mul_res = MatrixSquareFullVec::from(lt) * &MatrixSquareFullVec::from(ut);
+    assert!(mul_res.abs_diff_eq(&mat, f32::EPSILON));
+}
+
+#[test]
+fn test_lu_factorization_2() {
+    let mat = MatrixSquareFullVec::new_with_vec(3, vec![4., 2., 0., 4., 4., 2., 2., 2., 3.]);
+    let (lt, ut) = mat.lu();
+    let mul_res = MatrixSquareFullVec::from(lt) * &MatrixSquareFullVec::from(ut);
+    assert!(mul_res.abs_diff_eq(&mat, f32::EPSILON));
+}
+
+#[test]
+fn test_lu_factorization_3() {
+    let mat = MatrixSquareFullVec::new_with_vec(
+        4,
+        vec![
+            1., -1., 1., 2., 0., 2., 1., 0., 1., 3., 4., 4., 0., 2., 1., -1.,
+        ],
+    );
+    let (lt, ut) = mat.lu();
+    let mul_res = MatrixSquareFullVec::from(lt) * &MatrixSquareFullVec::from(ut);
+    assert!(mul_res.abs_diff_eq(&mat, f32::EPSILON));
+}
+
+#[test]
+fn test_lu_solve_0() {
     let mat_a = MatrixSquareFullVec::new_with_vec(3, vec![4.8, 2., 0., 4.3, 4., 2., 2., 2., 3.]);
     let b = Vector::new(vec![2., 4., 6.]);
     let x = mat_a.lu_solve(&b);
     println!("solution x = {x:#?}");
     let y = mat_a.transform_vector(&x);
+    assert!(b.abs_diff_eq(&y, f64::EPSILON * 2.))
+}
+
+#[test]
+#[should_panic(expected = "pivot element at")]
+fn test_lu_solve_1() {
+    let mat_lt = MatrixLTVec::new_with_vec(3, vec![0., 1., 3., 4., 1., 2.])
+        .extend_with_diagonal(&mut (0..4).map(|_| 1.0));
+    let mat_ut = MatrixLTVec::new_with_vec(4, vec![2., 1., 0., 0., 1., 2., 0., -1., 1., 1.]);
+    let mat = MatrixSquareFullVec::from(mat_lt) * &MatrixSquareFullVec::from(mat_ut);
+    println!("mat x = {mat}");
+    let b = Vector::new(vec![1., 1., 2., 0.]);
+    let x = mat.lu_solve(&b);
+    println!("solution x = {x:#?}");
+    let y = mat.transform_vector(&x);
     assert!(b.abs_diff_eq(&y, f64::EPSILON * 2.))
 }

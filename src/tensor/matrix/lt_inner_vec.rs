@@ -1,4 +1,7 @@
-use crate::tensor::vector::Vector;
+use crate::{
+    helpers::vec_zeros,
+    tensor::vector::{Vector, VectorInnerVec},
+};
 
 use super::{base_traits::Square, index2d::Index2D, Matrix, MatrixBaseOps, MatrixUTVec};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
@@ -59,7 +62,7 @@ impl<T: CoreFloat> IndexMut<Index2D> for Matrix<T, LowerTriangularVec<T>> {
 
 impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, LowerTriangularVec<T>> {
     fn add(&self, rhs: &Self) -> Self {
-        let mut inner = vec![T::ZERO; self.elements_num()];
+        let mut inner = vec_zeros(self.elements_num());
         for (i, x) in inner.iter_mut().enumerate().take(self.elements_num()) {
             *x = self.inner[i] + rhs.inner[i];
         }
@@ -74,7 +77,7 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, LowerTriangularVec<T>> {
     }
 
     fn sub(&self, rhs: &Self) -> Self {
-        let mut inner = vec![T::ZERO; self.elements_num()];
+        let mut inner = vec_zeros(self.elements_num());
         for (i, x) in inner.iter_mut().enumerate().take(self.elements_num()) {
             *x = self.inner[i] - rhs.inner[i];
         }
@@ -90,7 +93,7 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, LowerTriangularVec<T>> {
 
     fn mul(&self, rhs: &Self) -> Self {
         assert!(self.size() == rhs.size());
-        let mut mat = Self::new_with_vec(self.size(), vec![T::ZERO; self.elements_num()]);
+        let mut mat = Self::new_with_vec(self.size(), vec_zeros(self.elements_num()));
 
         for row in 0..self.size() {
             for col in 0..=row {
@@ -104,7 +107,7 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, LowerTriangularVec<T>> {
     }
 }
 
-/// Matrix whose inner storage type is `LowerTriangularVec`
+/// Matrix whose inner storage type is [`LowerTriangularVec`]
 pub type MatrixLTVec<T> = Matrix<T, LowerTriangularVec<T>>;
 
 impl<T: CoreFloat> MatrixLTVec<T> {
@@ -114,7 +117,7 @@ impl<T: CoreFloat> MatrixLTVec<T> {
     }
 
     pub fn transpose(&self) -> MatrixUTVec<T> {
-        let mut m = MatrixUTVec::new_with_vec(self.size(), vec![T::ZERO; self.elements_num()]);
+        let mut m = MatrixUTVec::new_with_vec(self.size(), vec_zeros(self.elements_num()));
         for i in 0..self.size() {
             for j in 0..=i {
                 m[(j, i)] = self[(i, j)];
@@ -124,13 +127,14 @@ impl<T: CoreFloat> MatrixLTVec<T> {
         m
     }
 
+    /// Extend the `N * N` lower triangular matrix to `(N + 1) * (N + 1)` by inserting the `N + 1` diagonal elements
     pub fn extend_with_diagonal<I>(&self, diagonal: &mut I) -> Self
     where
         I: Iterator<Item = T>,
     {
         let size = self.size() + 1;
 
-        let mut m = MatrixLTVec::new_with_vec(size, vec![T::ZERO; self.elements_num() + size]);
+        let mut m = MatrixLTVec::new_with_vec(size, vec_zeros(self.elements_num() + size));
 
         for i in 0..size {
             for j in 0..i {
@@ -145,8 +149,8 @@ impl<T: CoreFloat> MatrixLTVec<T> {
         m
     }
 
-    /// Solving L * x = b for x
-    pub fn back_substitution(&self, b: &Vector<T, Vec<T>>) -> Vector<T, Vec<T>> {
+    /// Solving `L * x = b` for `x`, `L` is the lower triangular matrix
+    pub fn back_substitution(&self, b: &VectorInnerVec<T>) -> VectorInnerVec<T> {
         assert!(self.size() == b.len());
 
         let mut x = Vector::new(vec![]);

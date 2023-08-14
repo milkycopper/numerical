@@ -1,5 +1,7 @@
 use core_float::CoreFloat;
 
+use crate::helpers::vec_zeros;
+
 use super::{MatrixLTVec, MatrixSquareFullVec, MatrixUTVec, Square};
 
 pub trait LUFactorization {
@@ -19,9 +21,9 @@ impl<T: CoreFloat> LUFactorization for MatrixSquareFullVec<T> {
         assert!(n > 1);
 
         let mut lower =
-            Self::UpperTriangular::new_with_vec(self.size() - 1, vec![T::ZERO; n * (n - 1) / 2]);
+            Self::UpperTriangular::new_with_vec(self.size() - 1, vec_zeros(n * (n - 1) / 2));
         let mut upper =
-            Self::UpperTriangular::new_with_vec(self.size(), vec![T::ZERO; n * (n + 1) / 2]);
+            Self::UpperTriangular::new_with_vec(self.size(), vec_zeros(n * (n + 1) / 2));
         let mut m = self.clone();
 
         for j in 0..n {

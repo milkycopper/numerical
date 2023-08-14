@@ -47,6 +47,11 @@ impl<'a, T: CoreFloat, S> Matrix<T, S>
 where
     Matrix<T, S>: MatrixBaseOps<T>,
 {
+    /// Return a iterator over matrix elements row by row.
+    ///
+    /// # Caution
+    ///
+    /// Use with caution for sparse matrix, because it could be very slow
     pub fn row_by_row_iter(&'a self) -> MatrixRowByRowIter<'a, T, Matrix<T, S>> {
         MatrixRowByRowIter {
             matrix: self,
@@ -242,6 +247,7 @@ mod traits_impl {
         }
     }
 
+    // TODO: Special implementation for matrices with different internal types
     impl<T, S> AbsDiffEq for Matrix<T, S>
     where
         S: core::cmp::PartialEq,

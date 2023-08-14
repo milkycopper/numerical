@@ -88,7 +88,10 @@ impl<T> From<Vec<T>> for Vector<T, Vec<T>> {
     }
 }
 
-impl<T: CoreFloat + AbsDiffEq<Epsilon = T>> approx::AbsDiffEq for Vector<T, Vec<T>> {
+/// Vector in mathematical sense whose inner storage type is [`Vec`]
+pub type VectorInnerVec<T> = Vector<T, Vec<T>>;
+
+impl<T: CoreFloat + AbsDiffEq<Epsilon = T>> approx::AbsDiffEq for VectorInnerVec<T> {
     type Epsilon = T;
 
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {

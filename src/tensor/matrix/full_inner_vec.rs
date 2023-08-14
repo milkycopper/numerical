@@ -1,3 +1,5 @@
+use crate::helpers::vec_zeros;
+
 use super::{index2d::Index2D, Matrix, MatrixBaseOps, MatrixSquareFullVec};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 use core_float::CoreFloat;
@@ -39,7 +41,7 @@ impl<T> IndexMut<Index2D> for Matrix<T, FullVec<T>> {
 
 impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, FullVec<T>> {
     fn add(&self, rhs: &Self) -> Self {
-        let mut inner = vec![T::ZERO; self.shape.area_size()];
+        let mut inner = vec_zeros(self.shape.area_size());
         for (i, x) in inner.iter_mut().enumerate().take(self.shape.area_size()) {
             *x = self.inner[i] + rhs.inner[i];
         }
@@ -54,7 +56,7 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, FullVec<T>> {
     }
 
     fn sub(&self, rhs: &Self) -> Self {
-        let mut inner = vec![T::ZERO; self.shape.area_size()];
+        let mut inner = vec_zeros(self.shape.area_size());
         for (i, x) in inner.iter_mut().enumerate().take(self.shape.area_size()) {
             *x = self.inner[i] - rhs.inner[i];
         }
@@ -71,7 +73,7 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, FullVec<T>> {
     fn mul(&self, rhs: &Self) -> Self {
         assert!(self.col_size() == rhs.row_size());
         let shape = Index2D::from((self.row_size(), rhs.col_size()));
-        let mut mat = Self::new_with_vec(shape, vec![T::ZERO; shape.area_size()]);
+        let mut mat = Self::new_with_vec(shape, vec_zeros(shape.area_size()));
         for row in 0..self.row_size() {
             for col in 0..rhs.col_size() {
                 for i in 0..self.col_size() {
@@ -84,7 +86,7 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, FullVec<T>> {
     }
 }
 
-/// Matrix whose inner storage type is `FullVec`
+/// Matrix whose inner storage type is [`FullVec`]
 pub type MatrixFullVec<T> = Matrix<T, FullVec<T>>;
 
 impl<T: CoreFloat> MatrixFullVec<T> {
@@ -94,10 +96,7 @@ impl<T: CoreFloat> MatrixFullVec<T> {
     }
 
     pub fn transpose(&self) -> Self {
-        let mut m = Self::new_with_vec(
-            self.shape.transpose(),
-            vec![T::ZERO; self.shape.area_size()],
-        );
+        let mut m = Self::new_with_vec(self.shape.transpose(), vec_zeros(self.shape.area_size()));
         for j in 0..self.col_size() {
             for i in 0..self.row_size() {
                 m[(j, i)] = self[(i, j)];
