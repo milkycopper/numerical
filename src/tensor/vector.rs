@@ -1,6 +1,9 @@
 use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 
+use approx::AbsDiffEq;
+use core_float::CoreFloat;
+
 macro_rules! impl_vec_storage_for_array {
     ( $( $n:literal ),* ) => {
         $(
@@ -50,6 +53,7 @@ impl<T> VecStorage<T> for Vec<T> {}
 /// # Generic
 /// * T: element type
 /// * S: storage type (Array, Vec etc.)
+#[derive(PartialEq, Debug)]
 pub struct Vector<T, S: VecStorage<T>> {
     inner: S,
     phantom: PhantomData<T>,
@@ -81,5 +85,27 @@ impl<T, S: VecStorage<T>> DerefMut for Vector<T, S> {
 impl<T> From<Vec<T>> for Vector<T, Vec<T>> {
     fn from(value: Vec<T>) -> Self {
         Vector::new(value)
+    }
+}
+
+impl<T: CoreFloat + AbsDiffEq<Epsilon = T>> approx::AbsDiffEq for Vector<T, Vec<T>> {
+    type Epsilon = T;
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+
+        for (a, b) in self.iter().zip(other.iter()) {
+            if !a.abs_diff_eq(b, epsilon) {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    fn default_epsilon() -> Self::Epsilon {
+        T::EPSILON
     }
 }

@@ -1,3 +1,5 @@
+use crate::tensor::{matrix::LUFactorization, vector::Vector};
+
 use super::{index2d::Index2D, Matrix, MatrixBaseOps, MatrixLTVec, MatrixUTVec, Square};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 use core_float::CoreFloat;
@@ -101,6 +103,37 @@ impl<T: CoreFloat> MatrixSquareFullVec<T> {
         }
 
         m
+    }
+
+    pub fn transform_vector(&self, v: &Vector<T, Vec<T>>) -> Vector<T, Vec<T>> {
+        assert!(self.size() == v.len());
+
+        let mut x = Vector::<T, Vec<T>>::new(vec![]);
+
+        let n = self.size();
+        for i in 0..n {
+            let mut y = T::ZERO;
+
+            for j in 0..n {
+                y += self[(i, j)] * v[j];
+            }
+
+            x.push(y)
+        }
+
+        x
+    }
+
+    pub fn lu_solve(&self, b: &Vector<T, Vec<T>>) -> Vector<T, Vec<T>> {
+        assert!(self.size() == b.len());
+
+        let (lt, ut) = self.lu();
+        let x1 = lt.back_substitution(b);
+        ut.back_substitution(&x1)
+    }
+
+    pub(crate) fn get_inner_vec(self) -> Vec<T> {
+        self.inner.0
     }
 }
 

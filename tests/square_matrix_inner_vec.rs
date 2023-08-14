@@ -1,6 +1,9 @@
 use approx::AbsDiffEq;
-use numerical::tensor::matrix::{
-    LUFactorization, MatrixBaseOps, MatrixLTVec, MatrixSquareFullVec, MatrixUTVec, Square,
+use numerical::tensor::{
+    matrix::{
+        LUFactorization, MatrixBaseOps, MatrixLTVec, MatrixSquareFullVec, MatrixUTVec, Square,
+    },
+    vector::Vector,
 };
 
 #[test]
@@ -157,4 +160,14 @@ fn test_lu_factorization() {
     let (lt, ut) = mat.lu();
     let mul_res = MatrixSquareFullVec::from(lt) * &MatrixSquareFullVec::from(ut);
     assert!(mul_res.abs_diff_eq(&mat, f32::EPSILON * 4.));
+}
+
+#[test]
+fn test_lu_solve() {
+    let mat_a = MatrixSquareFullVec::new_with_vec(3, vec![4.8, 2., 0., 4.3, 4., 2., 2., 2., 3.]);
+    let b = Vector::new(vec![2., 4., 6.]);
+    let x = mat_a.lu_solve(&b);
+    println!("solution x = {x:#?}");
+    let y = mat_a.transform_vector(&x);
+    assert!(b.abs_diff_eq(&y, f64::EPSILON * 2.))
 }

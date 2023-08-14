@@ -1,4 +1,8 @@
-use numerical::tensor::matrix::{MatrixUTVec, Square};
+use approx::AbsDiffEq;
+use numerical::tensor::{
+    matrix::{MatrixUTVec, Square},
+    vector::Vector,
+};
 
 #[test]
 fn test_matrix_ops_0() {
@@ -87,5 +91,19 @@ fn test_matrix_extend_with_diagonal() {
 [0, 0, 12, 9],
 [0, 0, 0, 13]
 ]"
+    );
+}
+
+#[test]
+fn test_back_substitution() {
+    let lt_m = MatrixUTVec::new_with_vec(3, vec![1., 2., -1., -3., 0., -2.]);
+
+    let b = Vector::new(vec![3., -3., -4.]);
+
+    let x = lt_m.back_substitution(&b);
+
+    assert!(
+        x.abs_diff_eq(&Vector::new(vec![3., 1., 2.]), f64::EPSILON),
+        "x = {x:#?}"
     );
 }

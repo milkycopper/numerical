@@ -1,4 +1,4 @@
-use super::{index2d::Index2D, Matrix, MatrixBaseOps};
+use super::{index2d::Index2D, Matrix, MatrixBaseOps, MatrixSquareFullVec};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 use core_float::CoreFloat;
 
@@ -109,3 +109,9 @@ impl<T: CoreFloat> MatrixFullVec<T> {
 }
 
 super::impl_index_usize_tuple!(MatrixFullVec<T>);
+
+impl<T: CoreFloat> From<MatrixSquareFullVec<T>> for MatrixFullVec<T> {
+    fn from(sq_m: MatrixSquareFullVec<T>) -> Self {
+        MatrixFullVec::new_with_vec(sq_m.shape(), sq_m.get_inner_vec())
+    }
+}

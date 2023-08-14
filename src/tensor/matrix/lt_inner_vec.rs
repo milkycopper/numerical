@@ -1,3 +1,5 @@
+use crate::tensor::vector::Vector;
+
 use super::{base_traits::Square, index2d::Index2D, Matrix, MatrixBaseOps, MatrixUTVec};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 
@@ -141,6 +143,27 @@ impl<T: CoreFloat> MatrixLTVec<T> {
         assert!(diagonal.next().is_none());
 
         m
+    }
+
+    /// Solving L * x = b for x
+    pub fn back_substitution(&self, b: &Vector<T, Vec<T>>) -> Vector<T, Vec<T>> {
+        assert!(self.size() == b.len());
+
+        let mut x = Vector::new(vec![]);
+
+        let n = self.size();
+        for i in 0..n {
+            let mut known = T::ZERO;
+
+            for j in 0..i {
+                known += self[(i, j)] * x[j];
+            }
+
+            let x_i = (b[i] - known) / self[(i, i)];
+            x.push(x_i);
+        }
+
+        x
     }
 
     #[inline]
