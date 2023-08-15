@@ -1,29 +1,34 @@
-use core_float::CoreFloat;
+use core::cmp::Ordering;
 
-use crate::helpers::vec_zeros;
+use crate::base_float::BaseFloat;
 
-use super::{MatrixLTVec, MatrixSquareFullVec, MatrixUTVec, Square};
+use super::{MatrixLTVec, MatrixPermutationVec, MatrixSquareFullVec, MatrixUTVec, Square};
 
 pub trait LUFactorization {
     type LowerTriangular;
     type UpperTriangular;
+    type Permutation;
 
     fn lu(&self) -> (Self::LowerTriangular, Self::UpperTriangular);
+    fn pa_lu(
+        &self,
+    ) -> (
+        Self::Permutation,
+        Self::LowerTriangular,
+        Self::UpperTriangular,
+    );
 }
 
-impl<T: CoreFloat> LUFactorization for MatrixSquareFullVec<T> {
+impl<T: BaseFloat> LUFactorization for MatrixSquareFullVec<T> {
     type UpperTriangular = MatrixUTVec<T>;
     type LowerTriangular = MatrixLTVec<T>;
+    type Permutation = MatrixPermutationVec<T>;
 
     fn lu(&self) -> (Self::LowerTriangular, Self::UpperTriangular) {
         let n = self.size();
 
         assert!(n > 1);
 
-        let mut lower =
-            Self::UpperTriangular::new_with_vec(self.size() - 1, vec_zeros(n * (n - 1) / 2));
-        let mut upper =
-            Self::UpperTriangular::new_with_vec(self.size(), vec_zeros(n * (n + 1) / 2));
         let mut m = self.clone();
 
         for j in 0..n {
@@ -36,13 +41,9 @@ impl<T: CoreFloat> LUFactorization for MatrixSquareFullVec<T> {
                 j
             );
 
-            upper[(j, j)] = m[(j, j)];
-
             for i in (j + 1)..n {
                 let e1 = m[(i, j)] * e0;
-                upper[(j, i)] = m[(j, i)];
-                lower[(j, i - 1)] = e1;
-                m[(i, j)] = T::ZERO;
+                m[(i, j)] = e1;
 
                 for k in (j + 1)..n {
                     let x = m[(j, k)];
@@ -51,10 +52,96 @@ impl<T: CoreFloat> LUFactorization for MatrixSquareFullVec<T> {
             }
         }
 
-        let lower = lower
-            .transpose()
-            .extend_with_diagonal(&mut (0..n).map(|_| T::ONE));
+        let mut lower_vec = vec![];
+        let mut upper_vec = vec![];
 
-        (lower, upper)
+        for i in 0..n {
+            for j in 0..n {
+                match i.cmp(&j) {
+                    Ordering::Greater => lower_vec.push(m[(i, j)]),
+                    Ordering::Equal => {
+                        lower_vec.push(T::ONE);
+                        upper_vec.push(m[(i, j)]);
+                    }
+                    Ordering::Less => upper_vec.push(m[(i, j)]),
+                }
+            }
+        }
+
+        (
+            MatrixLTVec::new_with_vec(n, lower_vec),
+            MatrixUTVec::new_with_vec(n, upper_vec),
+        )
+    }
+
+    fn pa_lu(
+        &self,
+    ) -> (
+        Self::Permutation,
+        Self::LowerTriangular,
+        Self::UpperTriangular,
+    ) {
+        let n = self.size();
+
+        assert!(n > 1);
+
+        let mut permutation = MatrixPermutationVec::<T>::identity(n);
+        let mut m = self.clone();
+
+        for j in 0..n {
+            let (mut max_index, mut max) = (j, m[(j, j)].abs());
+            for i in (j + 1)..n {
+                if m[(i, j)].abs() > max {
+                    max_index = i;
+                    max = m[(i, j)].abs();
+                }
+            }
+
+            if max_index != j {
+                m.exchange_row(j, max_index);
+                permutation.exchange(j, max_index);
+            }
+
+            let e0 = m[(j, j)].recip();
+
+            assert!(
+                e0.is_finite(),
+                "pivot element at ({}, {}) is 0, LU Factorization halt.",
+                j,
+                j
+            );
+
+            for i in (j + 1)..n {
+                let e1 = m[(i, j)] * e0;
+                m[(i, j)] = e1;
+
+                for k in (j + 1)..n {
+                    let x = m[(j, k)];
+                    m[(i, k)] -= e1 * x;
+                }
+            }
+        }
+
+        let mut lower_vec = vec![];
+        let mut upper_vec = vec![];
+
+        for i in 0..n {
+            for j in 0..n {
+                match i.cmp(&j) {
+                    Ordering::Greater => lower_vec.push(m[(i, j)]),
+                    Ordering::Equal => {
+                        lower_vec.push(T::ONE);
+                        upper_vec.push(m[(i, j)]);
+                    }
+                    Ordering::Less => upper_vec.push(m[(i, j)]),
+                }
+            }
+        }
+
+        (
+            permutation,
+            MatrixLTVec::new_with_vec(n, lower_vec),
+            MatrixUTVec::new_with_vec(n, upper_vec),
+        )
     }
 }

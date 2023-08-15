@@ -66,7 +66,9 @@ impl<T: CoreFloat> MatrixPermutationVec<T> {
     }
 
     pub fn exchange(&mut self, a: usize, b: usize) {
-        assert!(a != b);
+        if a == b {
+            return;
+        };
         assert!(a < self.size());
         assert!(b < self.size());
 

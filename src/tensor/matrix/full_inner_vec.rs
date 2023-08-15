@@ -1,4 +1,4 @@
-use crate::helpers::vec_zeros;
+use crate::{base_float::BaseFloat, helpers::vec_zeros};
 
 use super::{index2d::Index2D, Matrix, MatrixAddSubSelf, MatrixMulSelf, MatrixSquareFullVec};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
@@ -107,11 +107,26 @@ impl<T: CoreFloat> MatrixFullVec<T> {
 
         m
     }
+
+    pub fn exchange_row(&mut self, a: usize, b: usize) {
+        if a == b {
+            return;
+        };
+        let col_size = self.col_size();
+        assert!(a < self.row_size());
+        assert!(b < self.row_size());
+        for i in 0..col_size {
+            self.deref_mut().swap(
+                Index2D::from((a, i)).full_to_1d(col_size),
+                Index2D::from((b, i)).full_to_1d(col_size),
+            )
+        }
+    }
 }
 
 super::impl_index_usize_tuple!(MatrixFullVec<T>);
 
-impl<T: CoreFloat> From<MatrixSquareFullVec<T>> for MatrixFullVec<T> {
+impl<T: BaseFloat> From<MatrixSquareFullVec<T>> for MatrixFullVec<T> {
     fn from(sq_m: MatrixSquareFullVec<T>) -> Self {
         MatrixFullVec::new_with_vec(sq_m.shape(), sq_m.get_inner_vec())
     }

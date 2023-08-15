@@ -133,3 +133,18 @@ fn test_matrix_row_by_row_iter() {
         assert!(x == e);
     }
 }
+
+#[test]
+fn test_matrix_exchange_row() {
+    let inner = vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.];
+    let mut mat = MatrixFullVec::new_with_vec((3, 4).into(), inner);
+    mat.exchange_row(0, 1);
+    assert!(
+        format!("{mat}")
+            == "[
+[5, 6, 7, 8],
+[1, 2, 3, 4],
+[9, 10, 11, 12]
+]"
+    );
+}
