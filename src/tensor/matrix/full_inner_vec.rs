@@ -1,6 +1,6 @@
 use crate::helpers::vec_zeros;
 
-use super::{index2d::Index2D, Matrix, MatrixBaseOps, MatrixSquareFullVec};
+use super::{index2d::Index2D, Matrix, MatrixAddSubSelf, MatrixMulSelf, MatrixSquareFullVec};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 use core_float::CoreFloat;
 
@@ -39,7 +39,7 @@ impl<T> IndexMut<Index2D> for Matrix<T, FullVec<T>> {
     }
 }
 
-impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, FullVec<T>> {
+impl<T: CoreFloat> MatrixAddSubSelf<T> for Matrix<T, FullVec<T>> {
     fn add(&self, rhs: &Self) -> Self {
         let mut inner = vec_zeros(self.shape.area_size());
         for (i, x) in inner.iter_mut().enumerate().take(self.shape.area_size()) {
@@ -69,7 +69,9 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, FullVec<T>> {
             self.inner[i] -= rhs.inner[i];
         }
     }
+}
 
+impl<T: CoreFloat> MatrixMulSelf<T> for Matrix<T, FullVec<T>> {
     fn mul(&self, rhs: &Self) -> Self {
         assert!(self.col_size() == rhs.row_size());
         let shape = Index2D::from((self.row_size(), rhs.col_size()));

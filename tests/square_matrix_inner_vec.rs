@@ -1,7 +1,8 @@
 use approx::AbsDiffEq;
 use numerical::tensor::{
     matrix::{
-        LUFactorization, MatrixBaseOps, MatrixLTVec, MatrixSquareFullVec, MatrixUTVec, Square,
+        LUFactorization, MatrixAddSubSelf, MatrixLTVec, MatrixMulSelf, MatrixSquareFullVec,
+        MatrixUTVec, Square,
     },
     vector::Vector,
 };

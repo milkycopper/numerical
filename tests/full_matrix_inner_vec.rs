@@ -1,4 +1,4 @@
-use numerical::tensor::matrix::{MatrixBaseOps, MatrixFullVec};
+use numerical::tensor::matrix::{MatrixAddSubSelf, MatrixFullVec, MatrixMulSelf};
 
 #[test]
 fn test_matrix_ops_0() {

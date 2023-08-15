@@ -3,14 +3,16 @@ mod full_inner_vec;
 mod index2d;
 mod lt_inner_vec;
 mod lu_factorization;
+mod permutation;
 mod square_inner_vec;
 mod ut_inner_vec;
 
-pub use base_traits::{MatrixBaseOps, Square};
+pub use base_traits::{MatrixAddSubSelf, MatrixMulSelf, Square};
 pub use full_inner_vec::MatrixFullVec;
 pub use index2d::Index2D;
 pub use lt_inner_vec::MatrixLTVec;
 pub use lu_factorization::LUFactorization;
+pub use permutation::MatrixPermutationVec;
 pub use square_inner_vec::MatrixSquareFullVec;
 pub use ut_inner_vec::MatrixUTVec;
 

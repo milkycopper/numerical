@@ -24,11 +24,14 @@ macro_rules! impl_index_usize_tuple {
 pub(super) use impl_index_usize_tuple;
 
 /// Base operations for matrix
-pub trait MatrixBaseOps<T: CoreFloat>: Index<Index2D, Output = T> {
+pub trait MatrixAddSubSelf<T: CoreFloat> {
     fn add(&self, rhs: &Self) -> Self;
     fn add_assign(&mut self, rhs: &Self);
     fn sub(&self, rhs: &Self) -> Self;
     fn sub_assign(&mut self, rhs: &Self);
+}
+
+pub trait MatrixMulSelf<T: CoreFloat> {
     fn mul(&self, rhs: &Self) -> Self;
 }
 
@@ -37,7 +40,7 @@ pub trait Square {
     fn size(&self) -> usize;
 }
 
-pub struct MatrixRowByRowIter<'a, T: CoreFloat, M: MatrixBaseOps<T>> {
+pub struct MatrixRowByRowIter<'a, T: CoreFloat, M: Index<Index2D, Output = T>> {
     matrix: &'a M,
     phantom: PhantomData<T>,
     index2d: Index2D,
@@ -45,7 +48,7 @@ pub struct MatrixRowByRowIter<'a, T: CoreFloat, M: MatrixBaseOps<T>> {
 
 impl<'a, T: CoreFloat, S> Matrix<T, S>
 where
-    Matrix<T, S>: MatrixBaseOps<T>,
+    Matrix<T, S>: Index<Index2D, Output = T>,
 {
     /// Return a iterator over matrix elements row by row.
     ///
@@ -63,7 +66,7 @@ where
 
 impl<'a, T: CoreFloat, S> Iterator for MatrixRowByRowIter<'a, T, Matrix<T, S>>
 where
-    Matrix<T, S>: MatrixBaseOps<T>,
+    Matrix<T, S>: Index<Index2D, Output = T>,
 {
     type Item = T;
 
@@ -87,144 +90,148 @@ where
 }
 
 mod traits_impl {
-    use super::{super::Matrix, MatrixBaseOps};
+    use crate::tensor::matrix::Index2D;
+
+    use super::super::Matrix;
+    use super::{MatrixAddSubSelf, MatrixMulSelf};
     use approx::AbsDiffEq;
     use core::fmt::Display;
+    use core::ops::Index;
     use core::ops::{Add, AddAssign, Mul, Sub, SubAssign};
     use core_float::core_float_traits::CoreFloat;
 
     impl<T, S> Add for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         type Output = Self;
         fn add(self, rhs: Self) -> Self::Output {
-            <Self as MatrixBaseOps<T>>::add(&self, &rhs)
+            <Self as MatrixAddSubSelf<T>>::add(&self, &rhs)
         }
     }
 
     impl<T, S> Add<&Self> for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         type Output = Self;
         fn add(self, rhs: &Self) -> Self::Output {
-            <Self as MatrixBaseOps<T>>::add(&self, rhs)
+            <Self as MatrixAddSubSelf<T>>::add(&self, rhs)
         }
     }
 
     impl<'a, T, S> Add<Self> for &'a Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         type Output = Matrix<T, S>;
         fn add(self, rhs: Self) -> Self::Output {
-            MatrixBaseOps::<T>::add(self, rhs)
+            MatrixAddSubSelf::<T>::add(self, rhs)
         }
     }
 
     impl<T, S> AddAssign for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         fn add_assign(&mut self, rhs: Self) {
-            <Self as MatrixBaseOps<T>>::add_assign(self, &rhs);
+            <Self as MatrixAddSubSelf<T>>::add_assign(self, &rhs);
         }
     }
 
     impl<T, S> AddAssign<&Self> for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         fn add_assign(&mut self, rhs: &Self) {
-            <Self as MatrixBaseOps<T>>::add_assign(self, rhs);
+            <Self as MatrixAddSubSelf<T>>::add_assign(self, rhs);
         }
     }
 
     impl<T, S> Sub for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         type Output = Self;
         fn sub(self, rhs: Self) -> Self::Output {
-            <Self as MatrixBaseOps<T>>::sub(&self, &rhs)
+            <Self as MatrixAddSubSelf<T>>::sub(&self, &rhs)
         }
     }
 
     impl<T, S> Sub<&Self> for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         type Output = Self;
         fn sub(self, rhs: &Self) -> Self::Output {
-            <Self as MatrixBaseOps<T>>::sub(&self, rhs)
+            <Self as MatrixAddSubSelf<T>>::sub(&self, rhs)
         }
     }
 
     impl<'a, T, S> Sub<Self> for &'a Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         type Output = Matrix<T, S>;
         fn sub(self, rhs: Self) -> Self::Output {
-            MatrixBaseOps::<T>::sub(self, rhs)
+            MatrixAddSubSelf::<T>::sub(self, rhs)
         }
     }
 
     impl<T, S> SubAssign for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         fn sub_assign(&mut self, rhs: Self) {
-            <Self as MatrixBaseOps<T>>::sub_assign(self, &rhs);
+            <Self as MatrixAddSubSelf<T>>::sub_assign(self, &rhs);
         }
     }
 
     impl<T, S> SubAssign<&Self> for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixAddSubSelf<T>,
     {
         fn sub_assign(&mut self, rhs: &Self) {
-            <Self as MatrixBaseOps<T>>::sub_assign(self, rhs);
+            <Self as MatrixAddSubSelf<T>>::sub_assign(self, rhs);
         }
     }
 
     impl<T, S> Mul<&Self> for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixMulSelf<T>,
     {
         type Output = Self;
         fn mul(self, rhs: &Self) -> Self::Output {
-            <Self as MatrixBaseOps<T>>::mul(&self, rhs)
+            <Self as MatrixMulSelf<T>>::mul(&self, rhs)
         }
     }
 
     impl<'a, T, S> Mul<Self> for &'a Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: MatrixMulSelf<T>,
     {
         type Output = Matrix<T, S>;
         fn mul(self, rhs: Self) -> Self::Output {
-            MatrixBaseOps::<T>::mul(self, rhs)
+            MatrixMulSelf::<T>::mul(self, rhs)
         }
     }
 
     impl<T, S> Display for Matrix<T, S>
     where
         T: CoreFloat,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: Index<Index2D, Output = T>,
     {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             writeln!(f, "[")?;
@@ -252,7 +259,7 @@ mod traits_impl {
     where
         S: core::cmp::PartialEq,
         T: CoreFloat + AbsDiffEq<Epsilon = T>,
-        Matrix<T, S>: MatrixBaseOps<T>,
+        Matrix<T, S>: Index<Index2D, Output = T>,
     {
         type Epsilon = T;
         fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {

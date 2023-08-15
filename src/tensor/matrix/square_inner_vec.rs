@@ -3,7 +3,9 @@ use crate::{
     tensor::{matrix::LUFactorization, vector::VectorInnerVec},
 };
 
-use super::{index2d::Index2D, Matrix, MatrixBaseOps, MatrixLTVec, MatrixUTVec, Square};
+use super::{
+    index2d::Index2D, Matrix, MatrixAddSubSelf, MatrixLTVec, MatrixMulSelf, MatrixUTVec, Square,
+};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 use core_float::CoreFloat;
 
@@ -42,7 +44,7 @@ impl<T> IndexMut<Index2D> for Matrix<T, SquareFullVec<T>> {
     }
 }
 
-impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, SquareFullVec<T>> {
+impl<T: CoreFloat> MatrixAddSubSelf<T> for Matrix<T, SquareFullVec<T>> {
     fn add(&self, rhs: &Self) -> Self {
         let mut inner = vec_zeros(self.shape.area_size());
         for (i, x) in inner.iter_mut().enumerate().take(self.shape.area_size()) {
@@ -72,7 +74,9 @@ impl<T: CoreFloat> MatrixBaseOps<T> for Matrix<T, SquareFullVec<T>> {
             self.inner[i] -= rhs.inner[i];
         }
     }
+}
 
+impl<T: CoreFloat> MatrixMulSelf<T> for Matrix<T, SquareFullVec<T>> {
     fn mul(&self, rhs: &Self) -> Self {
         assert!(self.size() == rhs.size());
         let mut mat = Self::new_with_vec(self.size(), vec_zeros(self.size() * self.size()));
