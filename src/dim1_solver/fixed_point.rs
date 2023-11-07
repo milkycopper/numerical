@@ -1,5 +1,5 @@
-use super::Dim1Solver;
-use crate::base_float::BaseFloat;
+use super::{Dim1Solver, SolveResult, DEFAULT_ITER_COUNT_LIMIT};
+use crate::{base_float::BaseFloat, dim1_func::Dim1ContinuousFunc};
 
 /// A [`FixedPointSolver`] which implemented the [`Dim1Solver`] using the
 /// fixed point iteration to solve the root of a one-dimensional function.
@@ -8,45 +8,55 @@ use crate::base_float::BaseFloat;
 /// which makes the [`Dim1Solver::solve`] returns `None`
 ///
 /// `FixedPointSolver` has the linear convergence.
-pub struct FixedPointSolver<T> {
+pub struct FixedPointSolver<T: BaseFloat> {
     start_point: T,
     error_tolerance: T,
-    max_iter_num: usize,
+    iter_count_limit: usize,
 }
 
-impl<T> FixedPointSolver<T> {
-    /// FixedPointSolver constructor
-    ///
-    /// # Arguments
-    ///
-    /// * `start_point` - The start point of search, better if near the root
-    /// * `error_tolerance` - The error tolerance determines the accuracy of the root
-    /// * `max_iter_num` - The fixed point iteration may not converge to a valid root,
-    ///    so the iteration need to be stoped at the max iteration number
-    pub fn new(start_point: T, error_tolerance: T, max_iter_num: usize) -> Self {
+impl<T: BaseFloat> FixedPointSolver<T> {
+    pub fn with_start_point(start_point: T) -> Self {
         Self {
             start_point,
-            error_tolerance,
-            max_iter_num,
+            error_tolerance: T::EPSILON,
+            iter_count_limit: DEFAULT_ITER_COUNT_LIMIT,
         }
+    }
+
+    pub fn with_error_tolerance(mut self, error_tolerance: T) -> Self {
+        self.error_tolerance = error_tolerance;
+        self
+    }
+
+    pub fn with_iter_count_limit(mut self, iter_count_limit: usize) -> Self {
+        self.iter_count_limit = iter_count_limit;
+        self
     }
 }
 
 impl<T: BaseFloat> Dim1Solver<T> for FixedPointSolver<T> {
-    fn solve(&self, func: &impl crate::dim1_func::Dim1Func<T>) -> Option<T> {
+    fn solve<F>(&self, func: &F) -> SolveResult<T>
+    where
+        F: Dim1ContinuousFunc<T> + ?Sized,
+    {
         let mut root = self.start_point;
 
-        for i in 0..self.max_iter_num {
+        for i in 0..self.iter_count_limit {
             let next = func.eval(root) + root;
             let diff = (next - root).abs();
             let relative_diff = diff / next.abs().max(T::ONE);
             root = next;
             if relative_diff < self.error_tolerance {
-                log::info!("Fixed Point Iteration Num = {}", i + 1);
-                return Some(root);
+                return SolveResult {
+                    solution: Some(root),
+                    iter_count: i + 1,
+                };
             }
         }
 
-        None
+        SolveResult {
+            solution: None,
+            iter_count: self.iter_count_limit,
+        }
     }
 }

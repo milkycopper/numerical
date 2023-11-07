@@ -1,6 +1,6 @@
-use super::Dim1Solver;
+use super::{Dim1Solver, SolveResult, DEFAULT_ITER_COUNT_LIMIT};
 use crate::base_float::BaseFloat;
-use crate::dim1_func::Dim1Func;
+use crate::dim1_func::Dim1ContinuousFunc;
 
 /// A [`Dim1NewtonSolver`] which implemented the [`Dim1Solver`] using the
 /// newton's method to solve the root of a one-dimensional function.
@@ -8,58 +8,75 @@ use crate::dim1_func::Dim1Func;
 /// `Dim1NewtonSolver` has the quadratic convergence, faster than the
 /// [`super::BisectionSolver`] and the [`super::FixedPointSolver`]. But
 /// `Dim1NewtonSolver` has chance of failing in converge to a valid root.
-pub struct Dim1NewtonSolver<'a, T> {
+pub struct Dim1NewtonSolver<'a, T: BaseFloat> {
     start_point: T,
     error_tolerance: T,
-    max_iter_num: usize,
-    func: &'a dyn crate::dim1_func::Dim1Func<T>,
-    func_first_derivative: &'a dyn crate::dim1_func::Dim1Func<T>,
+    iter_count_limit: usize,
+    func: &'a dyn Dim1ContinuousFunc<T>,
+    func_first_derivative: &'a dyn Dim1ContinuousFunc<T>,
 }
 
-impl<'a, T> Dim1NewtonSolver<'a, T> {
+impl<'a, T: BaseFloat> Dim1NewtonSolver<'a, T> {
     /// BisectionSolver constructor
     ///
     /// # Arguments
     ///
     /// * `start_point` - The start point of search, better if near the root
-    /// * `error_tolerance` - The error tolerance determines the accuracy of the root
-    /// * `max_iter_num` - The newton's method may not converge to a valid root,
-    ///    so the iteration need to be stoped at the max iteration number
     /// * `func` - The function to be solved
     /// * `func_first_derivative` - The first order derivative of solved function
     pub fn new(
         start_point: T,
-        error_tolerance: T,
-        max_iter_num: usize,
-        func: &'a impl Dim1Func<T>,
-        func_first_derivative: &'a impl Dim1Func<T>,
+        func: &'a impl Dim1ContinuousFunc<T>,
+        func_first_derivative: &'a impl Dim1ContinuousFunc<T>,
     ) -> Self {
         Self {
             start_point,
-            error_tolerance,
-            max_iter_num,
+            error_tolerance: T::EPSILON,
+            iter_count_limit: DEFAULT_ITER_COUNT_LIMIT,
             func,
             func_first_derivative,
         }
     }
+
+    pub fn with_error_tolerance(mut self, error_tolerance: T) -> Self {
+        self.error_tolerance = error_tolerance;
+        self
+    }
+
+    pub fn with_iter_count_limit(mut self, iter_count_limit: usize) -> Self {
+        self.iter_count_limit = iter_count_limit;
+        self
+    }
+
+    pub fn solve(&self) -> SolveResult<T> {
+        <Self as Dim1Solver<T>>::solve(self, self.func)
+    }
 }
 
 impl<T: BaseFloat> Dim1Solver<T> for Dim1NewtonSolver<'_, T> {
-    fn solve(&self, _: &impl crate::dim1_func::Dim1Func<T>) -> Option<T> {
+    fn solve<F>(&self, _: &F) -> SolveResult<T>
+    where
+        F: Dim1ContinuousFunc<T> + ?Sized,
+    {
         let mut root = self.start_point;
 
-        for i in 0..self.max_iter_num {
+        for i in 0..self.iter_count_limit {
             let next = root - self.func.eval(root) / self.func_first_derivative.eval(root);
             let diff = (next - root).abs();
             let relative_diff = diff / next.abs().max(T::ONE);
             root = next;
 
             if relative_diff < self.error_tolerance {
-                log::info!("Dim1 Newton Iteration Num = {}", i + 1);
-                return Some(root);
+                return SolveResult {
+                    solution: Some(root),
+                    iter_count: i + 1,
+                };
             }
         }
 
-        None
+        SolveResult {
+            solution: None,
+            iter_count: self.iter_count_limit,
+        }
     }
 }

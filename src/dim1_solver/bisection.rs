@@ -1,48 +1,41 @@
-use crate::{base_float::BaseFloat, dim1_func::Dim1Func};
-use core_float::core_float_traits::CoreFloat;
-
-use super::Dim1Solver;
+use super::{Dim1Solver, SolveResult};
+use crate::{base_float::BaseFloat, dim1_func::Dim1ContinuousFunc};
 
 /// A [`BisectionSolver`] which implemented the [`Dim1Solver`] using the
 /// binary search method to solve the root of a one-dimensional function.
 ///
 /// `BisectionSolver` alway converge to a valid root if an appropriate search
 /// range is provided, it has the linear convergence.
-pub struct BisectionSolver<T> {
+pub struct BisectionSolver<T: BaseFloat> {
     search_range: [T; 2],
     error_tolerance: T,
 }
 
-impl<T: CoreFloat> BisectionSolver<T> {
-    /// BisectionSolver constructor
-    ///
-    /// # Arguments
-    ///
-    /// * `search_range` - The root is expected be within this range `[a, b]`
-    /// * `error_tolerance` - The error tolerance determines the accuracy of the root
-    ///
-    /// # Panic
-    ///
-    /// - Will panic if `search_range[0] >= search_range[1]`
-    /// - Will panic if `error_tolerance <= T::EPSILON`, which means
-    ///   the accuracy of the root will be limited by the machine epsilon
-    pub fn new(search_range: [T; 2], error_tolerance: T) -> Self {
-        assert!(search_range[0] < search_range[1]);
-        assert!(error_tolerance > T::EPSILON);
+impl<T: BaseFloat> BisectionSolver<T> {
+    pub fn with_search_range(range: [T; 2]) -> Self {
+        assert!(range[0] < range[1]);
         Self {
-            search_range,
-            error_tolerance,
+            search_range: range,
+            error_tolerance: T::EPSILON,
         }
+    }
+
+    pub fn with_error_tolerance(mut self, tolerance: T) -> Self {
+        self.error_tolerance = tolerance;
+        self
     }
 }
 
 impl<T: BaseFloat> Dim1Solver<T> for BisectionSolver<T> {
-    fn solve(&self, func: &impl Dim1Func<T>) -> Option<T> {
+    fn solve<F>(&self, func: &F) -> SolveResult<T>
+    where
+        F: Dim1ContinuousFunc<T> + ?Sized,
+    {
         let (mut a, mut b) = (self.search_range[0], self.search_range[1]);
 
         assert!(func.eval(a).sig_ne(func.eval(b)));
 
-        let mut iter_num: usize = 0;
+        let mut iter_count = 0;
 
         while (b - a) > self.error_tolerance.double() {
             let c = (b + a).half();
@@ -59,11 +52,12 @@ impl<T: BaseFloat> Dim1Solver<T> for BisectionSolver<T> {
                 a = c;
             }
 
-            iter_num += 1;
+            iter_count += 1;
         }
 
-        log::info!("Bisection solve, iteration number = {}", iter_num);
-
-        Some((b + a).half())
+        SolveResult {
+            solution: Some((a + b).half()),
+            iter_count,
+        }
     }
 }

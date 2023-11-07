@@ -1,6 +1,5 @@
 use crate::{
     base_float::BaseFloat,
-    helpers::vec_zeros,
     tensor::{matrix::LUFactorization, vector::VectorInnerVec},
 };
 
@@ -47,7 +46,7 @@ impl<T> IndexMut<Index2D> for Matrix<T, SquareFullVec<T>> {
 
 impl<T: CoreFloat> MatrixAddSubSelf<T> for Matrix<T, SquareFullVec<T>> {
     fn add(&self, rhs: &Self) -> Self {
-        let mut inner = vec_zeros(self.shape.area_size());
+        let mut inner = vec![T::ZERO; self.shape.area_size()];
         for (i, x) in inner.iter_mut().enumerate().take(self.shape.area_size()) {
             *x = self.inner[i] + rhs.inner[i];
         }
@@ -62,7 +61,7 @@ impl<T: CoreFloat> MatrixAddSubSelf<T> for Matrix<T, SquareFullVec<T>> {
     }
 
     fn sub(&self, rhs: &Self) -> Self {
-        let mut inner = vec_zeros(self.shape.area_size());
+        let mut inner = vec![T::ZERO; self.shape.area_size()];
         for (i, x) in inner.iter_mut().enumerate().take(self.shape.area_size()) {
             *x = self.inner[i] - rhs.inner[i];
         }
@@ -80,7 +79,7 @@ impl<T: CoreFloat> MatrixAddSubSelf<T> for Matrix<T, SquareFullVec<T>> {
 impl<T: BaseFloat> MatrixMulSelf<T> for Matrix<T, SquareFullVec<T>> {
     fn mul(&self, rhs: &Self) -> Self {
         assert!(self.size() == rhs.size());
-        let mut mat = Self::new_with_vec(self.size(), vec_zeros(self.size() * self.size()));
+        let mut mat = Self::new_with_vec(self.size(), vec![T::ZERO; self.size() * self.size()]);
         for row in 0..self.size() {
             for col in 0..rhs.size() {
                 for i in 0..self.size() {
@@ -103,7 +102,7 @@ impl<T: BaseFloat> MatrixSquareFullVec<T> {
     }
 
     pub fn transpose(&self) -> Self {
-        let mut m = Self::new_with_vec(self.size(), vec_zeros(self.shape.area_size()));
+        let mut m = Self::new_with_vec(self.size(), vec![T::ZERO; self.shape.area_size()]);
         for j in 0..self.size() {
             for i in 0..self.size() {
                 m[(j, i)] = self[(i, j)];
@@ -182,7 +181,7 @@ super::impl_index_usize_tuple!(MatrixSquareFullVec<T>);
 impl<T: BaseFloat> From<MatrixLTVec<T>> for MatrixSquareFullVec<T> {
     fn from(lt: MatrixLTVec<T>) -> Self {
         let n = lt.size();
-        let mut m = MatrixSquareFullVec::new_with_vec(n, vec_zeros(n * n));
+        let mut m = MatrixSquareFullVec::new_with_vec(n, vec![T::ZERO; n * n]);
         for i in 0..n {
             for j in 0..n {
                 m[(i, j)] = lt[(i, j)];
@@ -196,7 +195,7 @@ impl<T: BaseFloat> From<MatrixLTVec<T>> for MatrixSquareFullVec<T> {
 impl<T: BaseFloat> From<MatrixUTVec<T>> for MatrixSquareFullVec<T> {
     fn from(lt: MatrixUTVec<T>) -> Self {
         let n = lt.size();
-        let mut m = MatrixSquareFullVec::new_with_vec(n, vec_zeros(n * n));
+        let mut m = MatrixSquareFullVec::new_with_vec(n, vec![T::ZERO; n * n]);
         for i in 0..n {
             for j in 0..n {
                 m[(i, j)] = lt[(i, j)];

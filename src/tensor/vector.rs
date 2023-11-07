@@ -46,6 +46,7 @@ impl<T> LinearStorageLen for Vec<T> {
     }
 }
 
+/// Vector in mathematical sense whose inner storage type is [`Vec`]
 impl<T> VecStorage<T> for Vec<T> {}
 
 /// Vector in mathematical sense
@@ -58,6 +59,8 @@ pub struct Vector<T, S: VecStorage<T>> {
     inner: S,
     phantom: PhantomData<T>,
 }
+
+pub type VectorInnerVec<T> = Vector<T, Vec<T>>;
 
 impl<T, S: VecStorage<T>> Vector<T, S> {
     pub fn new(inner: S) -> Self {
@@ -82,14 +85,11 @@ impl<T, S: VecStorage<T>> DerefMut for Vector<T, S> {
     }
 }
 
-impl<T> From<Vec<T>> for Vector<T, Vec<T>> {
-    fn from(value: Vec<T>) -> Self {
+impl<T, S: VecStorage<T>> From<S> for Vector<T, S> {
+    fn from(value: S) -> Self {
         Vector::new(value)
     }
 }
-
-/// Vector in mathematical sense whose inner storage type is [`Vec`]
-pub type VectorInnerVec<T> = Vector<T, Vec<T>>;
 
 impl<T: CoreFloat + AbsDiffEq<Epsilon = T>> approx::AbsDiffEq for VectorInnerVec<T> {
     type Epsilon = T;

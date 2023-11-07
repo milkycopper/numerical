@@ -1,5 +1,7 @@
+use core_float::CoreFloat;
+
 /// Base float functions including those not supported in core
-pub trait BaseFloat: core_float::core_float_traits::CoreFloat {
+pub trait BaseFloat: CoreFloat {
     fn abs(self) -> Self;
     fn signum(self) -> Self;
 
