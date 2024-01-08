@@ -19,3 +19,18 @@ fn test_mul() {
 fn test_div() {
     assert!(F64::from(3.0) / F64::from(4.0) == 0.75.into())
 }
+
+#[test]
+fn test_neg() {
+    assert!(-F64::from(3.0) == F64::from(-3.0))
+}
+
+#[test]
+fn test_to_f64() {
+    assert!(F64::from(3.0).to_f64() == 3.0)
+}
+
+#[test]
+fn test_abs() {
+    assert!(F64::from(-3.0).abs() == 3.0.into())
+}
