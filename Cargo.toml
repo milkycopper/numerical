@@ -1,18 +1,21 @@
-[package]
-name = "numerical"
-version = "0.1.5"
-edition = "2021"
-description = "Rust Implementation of Numerical Analysis and Optimization Algorithms"
-license = "MIT"
-authors = ["milkycopper <liuxiaonan@pku.edu.cn>"]
-repository = "https://github.com/milkycopper/numerical"
-documentation = "https://docs.rs/numerical"
-readme = "README.md"
+# [package]
+# name = "numerical"
+# version = "0.1.5"
+# edition = "2021"
+# description = "Rust Implementation of Numerical Analysis and Optimization Algorithms"
+# license = "MIT"
+# authors = ["milkycopper <liuxiaonan@pku.edu.cn>"]
+# repository = "https://github.com/milkycopper/numerical"
+# documentation = "https://docs.rs/numerical"
+# readme = "README.md"
 
-[dependencies]
-core_float = "0.3.1"
-log = "0.4"
-approx = "0.5"
+# [dependencies]
+# core_float = "0.3.1"
+# log = "0.4"
+# approx = "0.5"
 
-[dev-dependencies]
-env_logger = "0.10"
+# [dev-dependencies]
+# env_logger = "0.10"
+
+[workspace]
+members = ["crates/floating_point"]
