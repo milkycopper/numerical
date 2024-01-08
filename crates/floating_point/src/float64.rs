@@ -5,6 +5,16 @@ type Inner = f64;
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct F64(Inner);
 
+impl F64 {
+    pub fn to_f64(&self) -> f64 {
+        self.0
+    }
+
+    pub fn abs(&self) -> Self {
+        f64::from_bits(self.0.to_bits() & (u64::MAX / 2)).into()
+    }
+}
+
 impl From<Inner> for F64 {
     fn from(value: Inner) -> Self {
         F64(value)
