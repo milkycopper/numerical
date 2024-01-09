@@ -1,4 +1,4 @@
-use core::ops::{Add, Div, Mul, Neg, Sub};
+use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 type Inner = f64;
 
@@ -29,11 +29,23 @@ impl Add for F64 {
     }
 }
 
+impl AddAssign for F64 {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0
+    }
+}
+
 impl Sub for F64 {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
         self.0.sub(rhs.0).into()
+    }
+}
+
+impl SubAssign for F64 {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.0 -= rhs.0
     }
 }
 
@@ -45,11 +57,23 @@ impl Mul for F64 {
     }
 }
 
+impl MulAssign for F64 {
+    fn mul_assign(&mut self, rhs: Self) {
+        self.0 *= rhs.0
+    }
+}
+
 impl Div for F64 {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
         self.0.div(rhs.0).into()
+    }
+}
+
+impl DivAssign for F64 {
+    fn div_assign(&mut self, rhs: Self) {
+        self.0 /= rhs.0
     }
 }
 

@@ -18,5 +18,5 @@
 # env_logger = "0.10"
 
 [workspace]
-members = ["crates/floating_point"]
+members = ["crates/floating_point", "crates/matrix"]
 resolver = "2"
