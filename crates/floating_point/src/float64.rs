@@ -84,3 +84,9 @@ impl Neg for F64 {
         self.0.neg().into()
     }
 }
+
+impl std::fmt::Display for F64 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
