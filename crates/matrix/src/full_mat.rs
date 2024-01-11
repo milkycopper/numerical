@@ -256,4 +256,49 @@ impl FullMat<F64> {
             None
         }
     }
+
+    pub fn inv(&self) -> Option<Self> {
+        assert!(self.is_square());
+
+        if let Some((l, u, p)) = self.lu() {
+            let mut cols = vec![];
+
+            for i in 0..self.col_count {
+                let mut b = vec![F64::from(0.0); self.col_count as usize];
+                b[i as usize] = 1.0.into();
+                let pb: Vec<F64> = p.iter().map(|i| b[*i as usize]).collect();
+                let y = l.lower_tri_back_substitution(pb);
+                let y = u.upper_tri_back_substitution(y);
+                cols.push(y);
+            }
+
+            let mut v = vec![];
+            for i in 0..self.col_count {
+                for j in 0..self.col_count {
+                    v.push(cols[j as usize][i as usize]);
+                }
+            }
+
+            Some(Self::from_vec(self.col_count, v))
+        } else {
+            None
+        }
+    }
+
+    pub fn norm(&self) -> F64 {
+        assert!(self.is_square());
+
+        let mut col_sums = vec![];
+        for j in 0..self.col_count {
+            let mut sum = 0.0.into();
+            for i in 0..self.col_count {
+                sum += self[(i, j)].abs();
+            }
+            col_sums.push(sum);
+        }
+
+        col_sums
+            .into_iter()
+            .fold(0.0.into(), |max, x| if max < x { x } else { max })
+    }
 }
