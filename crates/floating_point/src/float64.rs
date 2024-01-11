@@ -6,12 +6,12 @@ type Inner = f64;
 pub struct F64(Inner);
 
 impl F64 {
-    pub fn to_f64(&self) -> f64 {
+    pub fn to_f64(&self) -> Inner {
         self.0
     }
 
     pub fn abs(&self) -> Self {
-        f64::from_bits(self.0.to_bits() & (u64::MAX / 2)).into()
+        Inner::from_bits(self.0.to_bits() & (u64::MAX / 2)).into()
     }
 }
 

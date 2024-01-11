@@ -92,6 +92,71 @@ impl<T: Display> Display for FullMat<T> {
 }
 
 impl FullMat<F64> {
+    pub fn mul_mat(&self, rhs: &FullMat<F64>) -> FullMat<F64> {
+        assert!(rhs.row_count() == self.col_count());
+
+        let mut v = vec![];
+        for i in 0..self.row_count() {
+            for j in 0..rhs.col_count() {
+                let mut elem = F64::from(0.0);
+                for k in 0..self.col_count {
+                    elem += self[(i, k)] * rhs[(k, j)];
+                }
+                v.push(elem);
+            }
+        }
+
+        FullMat::from_vec(rhs.col_count(), v)
+    }
+
+    pub fn mul_vec(&self, rhs: &Vec<F64>) -> Vec<F64> {
+        assert!(self.col_count as usize == rhs.len());
+
+        let mut v = vec![];
+        for i in 0..self.row_count() {
+            let mut elem = F64::from(0.0);
+            for j in 0..self.col_count {
+                elem += self[(i, j)] * rhs[j as usize];
+            }
+            v.push(elem);
+        }
+
+        v
+    }
+
+    pub fn add(&self, rhs: &FullMat<F64>) -> Self {
+        assert!(self.shape() == rhs.shape());
+
+        let v = self
+            .storage
+            .iter()
+            .zip(rhs.storage.iter())
+            .map(|(x, y)| *x + *y)
+            .collect();
+
+        Self::from_vec(self.col_count, v)
+    }
+
+    pub fn sub(&self, rhs: &FullMat<F64>) -> Self {
+        assert!(self.shape() == rhs.shape());
+
+        let v = self
+            .storage
+            .iter()
+            .zip(rhs.storage.iter())
+            .map(|(x, y)| *x - *y)
+            .collect();
+
+        Self::from_vec(self.col_count, v)
+    }
+
+    pub fn element_max_abs(&self) -> F64 {
+        self.storage.iter().fold(
+            0.0.into(),
+            |max, x| if max < x.abs() { x.abs() } else { max },
+        )
+    }
+
     pub fn lu(&self) -> Option<(FullMat<F64>, FullMat<F64>, Vec<u32>)> {
         assert!(self.is_square());
 
@@ -147,6 +212,7 @@ impl FullMat<F64> {
     pub fn lower_tri_back_substitution(&self, b: Vec<F64>) -> Vec<F64> {
         assert!(self.is_square());
         assert!(b.len() as u32 == self.col_count);
+
         let n = self.col_count;
         let mut y = vec![];
         for i in 0..n {
@@ -163,6 +229,7 @@ impl FullMat<F64> {
     pub fn upper_tri_back_substitution(&self, b: Vec<F64>) -> Vec<F64> {
         assert!(self.is_square());
         assert!(b.len() as u32 == self.col_count);
+
         let n = self.col_count;
         let mut y = vec![F64::from(0.0); n as usize];
         for i in (0..n).rev() {
@@ -176,7 +243,7 @@ impl FullMat<F64> {
         y
     }
 
-    pub fn lu_solve(&self, b: Vec<F64>) -> Option<Vec<F64>> {
+    pub fn lu_solve(&self, b: &Vec<F64>) -> Option<Vec<F64>> {
         assert!(self.is_square());
         assert!(b.len() as u32 == self.col_count);
 
