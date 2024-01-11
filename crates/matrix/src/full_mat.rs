@@ -7,13 +7,13 @@ use crate::Matrix;
 
 #[derive(Clone, Debug)]
 pub struct FullMat<T> {
-    col_count: u32,
     storage: Vec<T>,
+    col_count: usize,
 }
 
 impl<T> FullMat<T> {
-    fn pos(&self, index: (u32, u32)) -> usize {
-        (index.0 * self.col_count + index.1) as usize
+    fn index_in_vec(&self, index: (usize, usize)) -> usize {
+        index.0 * self.col_count + index.1
     }
 }
 
@@ -21,21 +21,22 @@ impl<T: Clone> FullMat<T> {
     pub fn from_rows(rows: Vec<Vec<T>>) -> Self {
         assert!(!rows.is_empty());
         assert!(!rows[0].is_empty());
+
         let col_count = rows[0].len();
         for row in &rows[1..] {
             assert!(row.len() == col_count);
         }
-        let storage: Vec<T> = rows.concat();
+
         Self {
-            col_count: col_count as u32,
-            storage,
+            col_count,
+            storage: rows.concat(),
         }
     }
 
-    pub fn from_vec(col_count: u32, elements: Vec<T>) -> Self {
+    pub fn from_vec(col_count: usize, elements: Vec<T>) -> Self {
         assert!(col_count > 0);
         assert!(!elements.is_empty());
-        assert!(elements.len() as u32 % col_count == 0);
+        assert!(elements.len() % col_count == 0);
         Self {
             col_count,
             storage: elements,
@@ -44,44 +45,52 @@ impl<T: Clone> FullMat<T> {
 }
 
 impl<T: Copy> FullMat<T> {
-    pub fn swap(&mut self, index_a: (u32, u32), index_b: (u32, u32)) {
-        let pa = self.pos(index_a);
-        let pb = self.pos(index_b);
-        self.storage.swap(pa, pb)
+    pub fn swap(&mut self, index_a: (usize, usize), index_b: (usize, usize)) {
+        let ia = self.index_in_vec(index_a);
+        let ib = self.index_in_vec(index_b);
+        self.storage.swap(ia, ib)
     }
 
-    pub fn swap_row(&mut self, row_a: u32, row_b: u32) {
+    pub fn swap_row(&mut self, row_a: usize, row_b: usize) {
         if row_a != row_b {
+            let col_count = self.col_count;
             let min_row = row_a.min(row_b);
             let max_row = row_a.max(row_b);
-            let left_count = (min_row + 1) * self.col_count;
-            let (left, right) = self.storage.split_at_mut(left_count as usize);
-            let left_start = (min_row * self.col_count) as usize;
-            let right_start = ((max_row - min_row - 1) * self.col_count) as usize;
-            left[left_start..]
-                .swap_with_slice(&mut right[right_start..(right_start + self.col_count as usize)])
+            let left_count = (min_row + 1) * col_count;
+            let (left, right) = self.storage.split_at_mut(left_count);
+            let left_start = min_row * col_count;
+            let right_start = (max_row - min_row - 1) * col_count;
+            left[left_start..].swap_with_slice(&mut right[right_start..(right_start + col_count)])
         }
     }
 }
 
-impl<T> Index<(u32, u32)> for FullMat<T> {
+impl<T> Index<(usize, usize)> for FullMat<T> {
     type Output = T;
-    fn index(&self, index: (u32, u32)) -> &Self::Output {
-        &self.storage[self.pos(index)]
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        &self.storage[self.index_in_vec(index)]
     }
 }
 
-impl<T> IndexMut<(u32, u32)> for FullMat<T> {
-    fn index_mut(&mut self, index: (u32, u32)) -> &mut Self::Output {
-        let pos = self.pos(index);
+impl<T> IndexMut<(usize, usize)> for FullMat<T> {
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+        let pos = self.index_in_vec(index);
         &mut self.storage[pos]
     }
 }
 
 impl<T: Display> Matrix<T> for FullMat<T> {
-    fn shape(&self) -> (u32, u32) {
-        debug_assert!(self.storage.len() as u32 % self.col_count == 0);
-        (self.storage.len() as u32 / self.col_count, self.col_count)
+    fn shape(&self) -> (usize, usize) {
+        debug_assert!(self.storage.len() % self.col_count == 0);
+        (self.storage.len() / self.col_count, self.col_count)
+    }
+
+    fn col_count(&self) -> usize {
+        self.col_count
+    }
+
+    fn row_count(&self) -> usize {
+        self.storage.len() / self.col_count()
     }
 }
 
@@ -99,7 +108,7 @@ impl FullMat<F64> {
         for i in 0..self.row_count() {
             for j in 0..rhs.col_count() {
                 let mut elem = F64::from(0.0);
-                for k in 0..self.col_count {
+                for k in 0..self.col_count() {
                     elem += self[(i, k)] * rhs[(k, j)];
                 }
                 v.push(elem);
@@ -110,13 +119,13 @@ impl FullMat<F64> {
     }
 
     pub fn mul_vec(&self, rhs: &Vec<F64>) -> Vec<F64> {
-        assert!(self.col_count as usize == rhs.len());
+        assert!(self.col_count() == rhs.len());
 
         let mut v = vec![];
         for i in 0..self.row_count() {
-            let mut elem = F64::from(0.0);
-            for j in 0..self.col_count {
-                elem += self[(i, j)] * rhs[j as usize];
+            let mut elem = 0.0.into();
+            for j in 0..self.col_count() {
+                elem += self[(i, j)] * rhs[j];
             }
             v.push(elem);
         }
@@ -131,10 +140,10 @@ impl FullMat<F64> {
             .storage
             .iter()
             .zip(rhs.storage.iter())
-            .map(|(x, y)| *x + *y)
+            .map(|(x, y)| x + y)
             .collect();
 
-        Self::from_vec(self.col_count, v)
+        Self::from_vec(self.col_count(), v)
     }
 
     pub fn sub(&self, rhs: &FullMat<F64>) -> Self {
@@ -144,25 +153,22 @@ impl FullMat<F64> {
             .storage
             .iter()
             .zip(rhs.storage.iter())
-            .map(|(x, y)| *x - *y)
+            .map(|(x, y)| x - y)
             .collect();
 
-        Self::from_vec(self.col_count, v)
+        Self::from_vec(self.col_count(), v)
     }
 
     pub fn element_max_abs(&self) -> F64 {
-        self.storage.iter().fold(
-            0.0.into(),
-            |max, x| if max < x.abs() { x.abs() } else { max },
-        )
+        self.storage.iter().fold(0.0.into(), |max, x| max.max(*x))
     }
 
-    pub fn lu(&self) -> Option<(FullMat<F64>, FullMat<F64>, Vec<u32>)> {
+    pub fn lu(&self) -> Option<(FullMat<F64>, FullMat<F64>, Vec<usize>)> {
         assert!(self.is_square());
 
         let mut mat = self.clone();
-        let n = mat.row_count();
-        let mut p: Vec<u32> = (0..n).collect();
+        let n = mat.col_count();
+        let mut p: Vec<usize> = (0..n).collect();
 
         for j in 0..n {
             let (mut max_abs, mut max_abs_row) = (mat[(j, j)].abs(), j);
@@ -175,7 +181,7 @@ impl FullMat<F64> {
             }
             if max_abs_row != j {
                 mat.swap_row(j, max_abs_row);
-                p.swap(j as usize, max_abs_row as usize);
+                p.swap(j, max_abs_row);
             }
 
             let pivot = mat[(j, j)];
@@ -211,16 +217,15 @@ impl FullMat<F64> {
 
     pub fn lower_tri_back_substitution(&self, b: Vec<F64>) -> Vec<F64> {
         assert!(self.is_square());
-        assert!(b.len() as u32 == self.col_count);
+        assert!(b.len() == self.col_count());
 
-        let n = self.col_count;
         let mut y = vec![];
-        for i in 0..n {
+        for i in 0..self.col_count() {
             let mut sum: F64 = 0.0.into();
             for j in 0..i {
-                sum += y[j as usize] * self[(i, j)];
+                sum += y[j] * self[(i, j)];
             }
-            y.push((b[i as usize] - sum) / self[(i, i)]);
+            y.push((b[i] - sum) / self[(i, i)]);
         }
 
         y
@@ -228,16 +233,16 @@ impl FullMat<F64> {
 
     pub fn upper_tri_back_substitution(&self, b: Vec<F64>) -> Vec<F64> {
         assert!(self.is_square());
-        assert!(b.len() as u32 == self.col_count);
+        assert!(b.len() == self.col_count());
 
-        let n = self.col_count;
-        let mut y = vec![F64::from(0.0); n as usize];
+        let n = self.col_count();
+        let mut y = vec![F64::from(0.0); n];
         for i in (0..n).rev() {
             let mut sum: F64 = 0.0.into();
             for j in (i + 1)..n {
-                sum += y[j as usize] * self[(i, j)];
+                sum += y[j] * self[(i, j)];
             }
-            y[i as usize] = (b[i as usize] - sum) / self[(i, i)];
+            y[i] = (b[i] - sum) / self[(i, i)];
         }
 
         y
@@ -245,10 +250,10 @@ impl FullMat<F64> {
 
     pub fn lu_solve(&self, b: &Vec<F64>) -> Option<Vec<F64>> {
         assert!(self.is_square());
-        assert!(b.len() as u32 == self.col_count);
+        assert!(b.len() == self.col_count());
 
         if let Some((l, u, p)) = self.lu() {
-            let pb: Vec<F64> = p.into_iter().map(|i| b[i as usize]).collect();
+            let pb: Vec<F64> = p.into_iter().map(|i| b[i]).collect();
             let y = l.lower_tri_back_substitution(pb);
             let y = u.upper_tri_back_substitution(y);
             Some(y)
@@ -263,23 +268,23 @@ impl FullMat<F64> {
         if let Some((l, u, p)) = self.lu() {
             let mut cols = vec![];
 
-            for i in 0..self.col_count {
-                let mut b = vec![F64::from(0.0); self.col_count as usize];
-                b[i as usize] = 1.0.into();
-                let pb: Vec<F64> = p.iter().map(|i| b[*i as usize]).collect();
+            for i in 0..self.col_count() {
+                let mut b = vec![F64::from(0.0); self.col_count()];
+                b[i] = 1.0.into();
+                let pb: Vec<F64> = p.iter().map(|i| b[*i]).collect();
                 let y = l.lower_tri_back_substitution(pb);
                 let y = u.upper_tri_back_substitution(y);
                 cols.push(y);
             }
 
             let mut v = vec![];
-            for i in 0..self.col_count {
-                for j in 0..self.col_count {
-                    v.push(cols[j as usize][i as usize]);
+            for i in 0..self.col_count() {
+                for col in &cols {
+                    v.push(col[i]);
                 }
             }
 
-            Some(Self::from_vec(self.col_count, v))
+            Some(Self::from_vec(self.col_count(), v))
         } else {
             None
         }
@@ -289,16 +294,14 @@ impl FullMat<F64> {
         assert!(self.is_square());
 
         let mut col_sums = vec![];
-        for j in 0..self.col_count {
+        for j in 0..self.col_count() {
             let mut sum = 0.0.into();
-            for i in 0..self.col_count {
+            for i in 0..self.col_count() {
                 sum += self[(i, j)].abs();
             }
             col_sums.push(sum);
         }
 
-        col_sums
-            .into_iter()
-            .fold(0.0.into(), |max, x| if max < x { x } else { max })
+        col_sums.into_iter().fold(0.0.into(), |max, x| max.max(x))
     }
 }

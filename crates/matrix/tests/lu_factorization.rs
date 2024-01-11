@@ -19,8 +19,8 @@ fn test_lu() {
     );
     let (l, u, p) = mat.lu().unwrap();
     println!("p = {:?}", p);
-    println!("l = {}", l);
-    println!("u = {}", u);
+    println!("l = \n{}", l);
+    println!("u = \n{}", u);
 
     let mat_b = l.mul_mat(&u);
     let mat_p = FullMat::from_rows(
@@ -37,6 +37,18 @@ fn test_lu() {
     let max_diff_abs = mat_diff.element_max_abs();
 
     assert!(max_diff_abs == 0.0.into());
+}
+
+#[test]
+fn test_singular_lu() {
+    let mat = FullMat::from_vec(
+        3,
+        vec![2., 1., 5., 4., 4., -4., -2., -1., -5.]
+            .into_iter()
+            .map(F64::from)
+            .collect(),
+    );
+    assert!(mat.lu().is_none())
 }
 
 #[test]
@@ -113,7 +125,7 @@ fn test_inv() {
 
 #[test]
 fn test_norm_and_condition_number() {
-    fn hibert_mat(n: u32) -> FullMat<F64> {
+    fn hibert_mat(n: usize) -> FullMat<F64> {
         let mut v = vec![];
         for i in 1..(n + 1) {
             for j in 1..(n + 1) {

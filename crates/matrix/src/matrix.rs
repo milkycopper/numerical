@@ -1,14 +1,13 @@
 use core::ops::Index;
-use std::fmt::Display;
 
-pub trait Matrix<T: Display>: Index<(u32, u32), Output = T> {
-    fn shape(&self) -> (u32, u32);
+pub trait Matrix<T: std::fmt::Display>: Index<(usize, usize), Output = T> {
+    fn shape(&self) -> (usize, usize);
 
-    fn row_count(&self) -> u32 {
+    fn row_count(&self) -> usize {
         self.shape().0
     }
 
-    fn col_count(&self) -> u32 {
+    fn col_count(&self) -> usize {
         self.shape().1
     }
 
@@ -17,7 +16,7 @@ pub trait Matrix<T: Display>: Index<(u32, u32), Output = T> {
     }
 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "\n[")?;
+        write!(f, "[")?;
         for i in 0..self.row_count() {
             write!(f, "[")?;
             for j in 0..self.col_count() {
