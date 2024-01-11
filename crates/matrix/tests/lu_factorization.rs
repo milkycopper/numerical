@@ -10,13 +10,7 @@ fn vec_max_diff(a: &Vec<F64>, b: &Vec<F64>) -> F64 {
 
 #[test]
 fn test_lu() {
-    let mat = FullMat::from_vec(
-        3,
-        vec![2., 1., 5., 4., 4., -4., 1., 3., 1.]
-            .into_iter()
-            .map(F64::from)
-            .collect(),
-    );
+    let mat = FullMat::from_vec(3, F64::map_vec(vec![2., 1., 5., 4., 4., -4., 1., 3., 1.]));
     let (l, u, p) = mat.lu().unwrap();
     println!("p = {:?}", p);
     println!("l = \n{}", l);
@@ -43,24 +37,15 @@ fn test_lu() {
 fn test_singular_lu() {
     let mat = FullMat::from_vec(
         3,
-        vec![2., 1., 5., 4., 4., -4., -2., -1., -5.]
-            .into_iter()
-            .map(F64::from)
-            .collect(),
+        F64::map_vec(vec![2., 1., 5., 4., 4., -4., -2., -1., -5.]),
     );
     assert!(mat.lu().is_none())
 }
 
 #[test]
 fn test_lu_solve_0() {
-    let mat = FullMat::from_vec(
-        3,
-        vec![2., 1., 5., 4., 4., -4., 1., 3., 1.]
-            .into_iter()
-            .map(F64::from)
-            .collect(),
-    );
-    let b = vec![5., 0., 6.].into_iter().map(F64::from).collect();
+    let mat = FullMat::from_vec(3, F64::map_vec(vec![2., 1., 5., 4., 4., -4., 1., 3., 1.]));
+    let b = F64::map_vec(vec![5., 0., 6.]);
     let x = mat.lu_solve(&b).unwrap();
     assert!(x[0] == F64::from(-1.0));
     assert!(x[1] == F64::from(2.0));
@@ -72,14 +57,8 @@ fn test_lu_solve_0() {
 
 #[test]
 fn test_lu_solve_1() {
-    let mat = FullMat::from_vec(
-        3,
-        vec![4., 2., 0., 4., 4., -2., 2., 2., 3.]
-            .into_iter()
-            .map(F64::from)
-            .collect(),
-    );
-    let b = vec![2., 4., 6.].into_iter().map(F64::from).collect();
+    let mat = FullMat::from_vec(3, F64::map_vec(vec![4., 2., 0., 4., 4., -2., 2., 2., 3.]));
+    let b = F64::map_vec(vec![2., 4., 6.]);
     let x = mat.lu_solve(&b).unwrap();
     let y = mat.mul_vec(&x);
     assert!(vec_max_diff(&y, &b) == 0.0.into());
@@ -87,14 +66,8 @@ fn test_lu_solve_1() {
 
 #[test]
 fn test_lu_solve_2() {
-    let mat = FullMat::from_vec(
-        3,
-        vec![4., 2., 0., 4., 4., -2., 2., 2., 3.]
-            .into_iter()
-            .map(|x| F64::from(x + 0.1))
-            .collect(),
-    );
-    let b = vec![2., 4., 6.].into_iter().map(F64::from).collect();
+    let mat = FullMat::from_vec(3, F64::map_vec(vec![4., 2., 0., 4., 4., -2., 2., 2., 3.]));
+    let b = F64::map_vec(vec![2., 4., 6.]);
     let x = mat.lu_solve(&b).unwrap();
     let y = mat.mul_vec(&x);
     assert!(vec_max_diff(&y, &b) < (4.0 * f64::EPSILON).into());
@@ -102,24 +75,12 @@ fn test_lu_solve_2() {
 
 #[test]
 fn test_inv() {
-    let mat = FullMat::from_vec(
-        3,
-        vec![4., 2., 0., 4., 4., -2., 2., 2., 3.]
-            .into_iter()
-            .map(F64::from)
-            .collect(),
-    );
+    let mat = FullMat::from_vec(3, F64::map_vec(vec![4., 2., 0., 4., 4., -2., 2., 2., 3.]));
     let inv_mat = mat.inv().unwrap();
     println!("Inverse mat = {inv_mat}");
     println!("mat * inv_mat = {}", mat.mul_mat(&inv_mat));
 
-    let identity_mat = FullMat::from_vec(
-        3,
-        vec![1., 0., 0., 0., 1., 0., 0., 0., 1.]
-            .into_iter()
-            .map(F64::from)
-            .collect(),
-    );
+    let identity_mat = FullMat::from_vec(3, F64::map_vec(vec![1., 0., 0., 0., 1., 0., 0., 0., 1.]));
     assert!(mat.mul_mat(&inv_mat).sub(&identity_mat).element_max_abs() == 0.0.into());
 }
 
