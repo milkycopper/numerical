@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display};
 
 use floating_point::F64;
 
-use crate::Matrix;
+use crate::{Matrix, TriFullMat, TriangleMatType};
 
 #[derive(Clone, Debug)]
 pub struct FullMat<T> {
@@ -62,41 +62,6 @@ impl<T: Copy> FullMat<T> {
             let right_start = (max_row - min_row - 1) * col_count;
             left[left_start..].swap_with_slice(&mut right[right_start..(right_start + col_count)])
         }
-    }
-}
-
-impl<T> Index<(usize, usize)> for FullMat<T> {
-    type Output = T;
-    fn index(&self, index: (usize, usize)) -> &Self::Output {
-        &self.storage[self.index_in_vec(index)]
-    }
-}
-
-impl<T> IndexMut<(usize, usize)> for FullMat<T> {
-    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
-        let pos = self.index_in_vec(index);
-        &mut self.storage[pos]
-    }
-}
-
-impl<T: Display> Matrix<T> for FullMat<T> {
-    fn shape(&self) -> (usize, usize) {
-        debug_assert!(self.storage.len() % self.col_count == 0);
-        (self.storage.len() / self.col_count, self.col_count)
-    }
-
-    fn col_count(&self) -> usize {
-        self.col_count
-    }
-
-    fn row_count(&self) -> usize {
-        self.storage.len() / self.col_count()
-    }
-}
-
-impl<T: Display> Display for FullMat<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Matrix::fmt(self, f)
     }
 }
 
@@ -163,7 +128,7 @@ impl FullMat<F64> {
         self.storage.iter().fold(0.0.into(), |max, x| max.max(*x))
     }
 
-    pub fn lu(&self) -> Option<(FullMat<F64>, FullMat<F64>, Vec<usize>)> {
+    pub fn lu(&self) -> Option<(TriFullMat<F64>, TriFullMat<F64>, Vec<usize>)> {
         assert!(self.is_square());
 
         let mut mat = self.clone();
@@ -199,53 +164,24 @@ impl FullMat<F64> {
             }
         }
 
-        let mut l = mat.clone();
-        let mut u = mat.clone();
+        let mut l = vec![];
+        let mut u = vec![];
 
         for i in 0..n {
-            l[(i, i)] = 1.0.into();
-            for j in (i + 1)..n {
-                l[(i, j)] = 0.0.into();
-            }
             for j in 0..i {
-                u[(i, j)] = 0.0.into();
+                l.push(mat[(i, j)]);
+            }
+            l.push(1.0.into());
+            for j in i..n {
+                u.push(mat[(i, j)]);
             }
         }
 
-        Some((l, u, p))
-    }
-
-    pub fn lower_tri_back_substitution(&self, b: Vec<F64>) -> Vec<F64> {
-        assert!(self.is_square());
-        assert!(b.len() == self.col_count());
-
-        let mut y = vec![];
-        for i in 0..self.col_count() {
-            let mut sum: F64 = 0.0.into();
-            for j in 0..i {
-                sum += y[j] * self[(i, j)];
-            }
-            y.push((b[i] - sum) / self[(i, i)]);
-        }
-
-        y
-    }
-
-    pub fn upper_tri_back_substitution(&self, b: Vec<F64>) -> Vec<F64> {
-        assert!(self.is_square());
-        assert!(b.len() == self.col_count());
-
-        let n = self.col_count();
-        let mut y = vec![F64::from(0.0); n];
-        for i in (0..n).rev() {
-            let mut sum: F64 = 0.0.into();
-            for j in (i + 1)..n {
-                sum += y[j] * self[(i, j)];
-            }
-            y[i] = (b[i] - sum) / self[(i, i)];
-        }
-
-        y
+        Some((
+            TriFullMat::from_vec(TriangleMatType::Lower, l),
+            TriFullMat::from_vec(TriangleMatType::Upper, u),
+            p,
+        ))
     }
 
     pub fn lu_solve(&self, b: &Vec<F64>) -> Option<Vec<F64>> {
@@ -254,8 +190,8 @@ impl FullMat<F64> {
 
         if let Some((l, u, p)) = self.lu() {
             let pb: Vec<F64> = p.into_iter().map(|i| b[i]).collect();
-            let y = l.lower_tri_back_substitution(pb);
-            let y = u.upper_tri_back_substitution(y);
+            let y = l.solve(pb);
+            let y = u.solve(y);
             Some(y)
         } else {
             None
@@ -272,8 +208,8 @@ impl FullMat<F64> {
                 let mut b = vec![F64::from(0.0); self.col_count()];
                 b[i] = 1.0.into();
                 let pb: Vec<F64> = p.iter().map(|i| b[*i]).collect();
-                let y = l.lower_tri_back_substitution(pb);
-                let y = u.upper_tri_back_substitution(y);
+                let y = l.solve(pb);
+                let y = u.solve(y);
                 cols.push(y);
             }
 
@@ -303,5 +239,70 @@ impl FullMat<F64> {
         }
 
         col_sums.into_iter().fold(0.0.into(), |max, x| max.max(x))
+    }
+}
+
+impl<T> Index<(usize, usize)> for FullMat<T> {
+    type Output = T;
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        &self.storage[self.index_in_vec(index)]
+    }
+}
+
+impl<T> IndexMut<(usize, usize)> for FullMat<T> {
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+        let i = self.index_in_vec(index);
+        &mut self.storage[i]
+    }
+}
+
+impl<T: Display> Matrix<T> for FullMat<T> {
+    fn shape(&self) -> (usize, usize) {
+        debug_assert!(self.storage.len() % self.col_count == 0);
+        (self.storage.len() / self.col_count, self.col_count)
+    }
+
+    fn col_count(&self) -> usize {
+        self.col_count
+    }
+
+    fn row_count(&self) -> usize {
+        self.storage.len() / self.col_count()
+    }
+}
+
+impl<T: Display> Display for FullMat<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Matrix::fmt(self, f)
+    }
+}
+
+impl From<TriFullMat<F64>> for FullMat<F64> {
+    fn from(tri_mat: TriFullMat<F64>) -> Self {
+        let mut v = vec![];
+        let n = tri_mat.col_count();
+        match tri_mat.ty {
+            TriangleMatType::Upper => {
+                for i in 0..n {
+                    for _ in 0..i {
+                        v.push(0.0.into());
+                    }
+                    for j in i..n {
+                        v.push(tri_mat[(i, j)])
+                    }
+                }
+            }
+            TriangleMatType::Lower => {
+                for i in 0..n {
+                    for j in 0..=i {
+                        v.push(tri_mat[(i, j)]);
+                    }
+                    for _ in (i + 1)..n {
+                        v.push(0.0.into())
+                    }
+                }
+            }
+        }
+        Self::from_vec(n, v)
     }
 }

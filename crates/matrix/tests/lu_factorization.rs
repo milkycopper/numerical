@@ -16,7 +16,7 @@ fn test_lu() {
     println!("l = \n{}", l);
     println!("u = \n{}", u);
 
-    let mat_b = l.mul_mat(&u);
+    let mat_b = FullMat::from(l).mul_mat(&FullMat::from(u));
     let mat_p = FullMat::from_rows(
         p.iter()
             .map(|i| {

@@ -36,6 +36,8 @@ macro_rules! impl_ops_1 {
 }
 
 impl F64 {
+    pub const ZERO: Self = Self(0.0);
+
     pub fn to_f64(&self) -> Inner {
         self.0
     }
