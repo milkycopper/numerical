@@ -7,3 +7,9 @@ edition = "2021"
 
 [dependencies]
 floating_point = { path = "../floating_point" }
+
+[dev-dependencies]
+plotly = { version = "0.8.4", features = [] }
+
+[[example]]
+name = "polynomial_interpolation_plot_0"
