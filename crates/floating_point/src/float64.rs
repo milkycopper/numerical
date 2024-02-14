@@ -1,10 +1,5 @@
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-type Inner = f64;
-
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
-pub struct F64(Inner);
-
 macro_rules! impl_ops_0 {
     ($trait: ty, $method: tt) => {
         impl $trait for F64 {
@@ -34,6 +29,11 @@ macro_rules! impl_ops_1 {
         }
     };
 }
+
+type Inner = f64;
+
+#[derive(Copy, Clone, PartialEq, PartialOrd)]
+pub struct F64(Inner);
 
 impl F64 {
     pub const ZERO: Self = Self(0.0);
@@ -83,8 +83,14 @@ impl Neg for F64 {
     }
 }
 
-impl std::fmt::Display for F64 {
+impl core::fmt::Debug for F64 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        core::fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+impl core::fmt::Display for F64 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        core::fmt::Display::fmt(&self.0, f)
     }
 }
