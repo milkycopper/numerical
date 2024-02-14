@@ -38,6 +38,8 @@ pub struct F64(Inner);
 impl F64 {
     pub const ZERO: Self = Self(0.0);
 
+    pub const ONE: Self = Self(1.0);
+
     pub fn to_f64(&self) -> Inner {
         self.0
     }
