@@ -15,6 +15,8 @@ fn test_conjugate() {
         Complex64::new(0.1, 0.2).conjugate(),
         Complex64::from((0.1, -0.2))
     );
+    let a = Complex64::new(0.1, 0.2);
+    assert_eq!(a.conjugate().conjugate(), a);
 }
 
 #[test]
@@ -42,6 +44,10 @@ fn test_sub() {
     assert!((a - b).abs_diff_eq(&c, f64::EPSILON.into()));
     a -= b;
     assert!(a.abs_diff_eq(&c, f64::EPSILON.into()));
+
+    let d = b + c;
+    let f = d - c;
+    assert!(b.abs_diff_eq(&f, f64::EPSILON.into()));
 }
 
 #[test]
@@ -69,9 +75,16 @@ fn test_div() {
         a,
         c
     );
+
+    let d = b / c;
+    let f = d * c;
+    assert!(b.abs_diff_eq(&f, f64::EPSILON.into()));
 }
 
 #[test]
 fn test_neg() {
     assert_eq!(-Complex64::new(0.3, -0.4), Complex64::new(-0.3, 0.4));
+
+    let a = Complex64::new(0.3, -0.4);
+    assert_eq!(-(-a), a);
 }
