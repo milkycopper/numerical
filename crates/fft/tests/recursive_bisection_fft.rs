@@ -1,10 +1,12 @@
+#![cfg_attr(feature = "nightly_bench", feature(test))]
+
 use approx::AbsDiffEq;
 use fft::{NaiveDFT, RecursiveBisectionFFT, DFT};
 use floating_point::Complex64;
 use rand::prelude::*;
 
 #[test]
-fn test_naive_fft_0() {
+fn test_recursive_bisection_fft_0() {
     let mut rng = rand::thread_rng();
     let n = 2_usize.pow(16);
     println!("n = {n}");
@@ -29,7 +31,7 @@ fn test_naive_fft_0() {
 }
 
 #[test]
-fn test_naive_fft_1() {
+fn test_recursive_bisection_fft_1() {
     let mut rng = rand::thread_rng();
     let n = 2_usize.pow(11);
     println!("n = {n}");
@@ -51,4 +53,45 @@ fn test_naive_fft_1() {
             a - b
         )
     });
+}
+
+#[cfg(feature = "nightly_bench")]
+mod benchs {
+    extern crate test;
+
+    use super::*;
+
+    fn prepare_data() -> Vec<Complex64> {
+        let mut rng = rand::thread_rng();
+        let n = 2_usize.pow(10);
+        println!("n = {n}");
+        (0..n)
+            .into_iter()
+            .map(|_| -> Complex64 { Complex64::new(rng.gen(), 0.0) })
+            .collect::<Vec<_>>()
+    }
+
+    #[bench]
+    fn bench_naive_fft(b: &mut test::Bencher) {
+        let data = prepare_data();
+        b.iter(|| NaiveDFT::fourier_transform(&data));
+    }
+
+    #[bench]
+    fn bench_naive_inverse_fft(b: &mut test::Bencher) {
+        let data = prepare_data();
+        b.iter(|| NaiveDFT::inverse_fourier_transform(&data));
+    }
+
+    #[bench]
+    fn bench_recursive_bisection_fft(b: &mut test::Bencher) {
+        let data = prepare_data();
+        b.iter(|| RecursiveBisectionFFT::fourier_transform(&data));
+    }
+
+    #[bench]
+    fn bench_recursive_bisection_inverse_fft(b: &mut test::Bencher) {
+        let data = prepare_data();
+        b.iter(|| RecursiveBisectionFFT::inverse_fourier_transform(&data));
+    }
 }
