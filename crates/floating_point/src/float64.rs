@@ -96,3 +96,9 @@ impl core::fmt::Display for F64 {
         core::fmt::Display::fmt(&self.0, f)
     }
 }
+
+impl core::fmt::LowerExp for F64 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        core::fmt::LowerExp::fmt(&self.to_f64(), f)
+    }
+}

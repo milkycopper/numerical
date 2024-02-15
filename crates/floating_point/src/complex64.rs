@@ -160,6 +160,18 @@ impl core::iter::Sum for Complex64 {
     }
 }
 
+impl core::fmt::LowerExp for Complex64 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{:e} {} {:e} I",
+            self.real,
+            if self.imag > F64::ZERO { '+' } else { '-' },
+            self.imag.abs()
+        )
+    }
+}
+
 impl core::fmt::Debug for Complex64 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
