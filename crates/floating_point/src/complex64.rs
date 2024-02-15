@@ -38,6 +38,16 @@ impl Complex64 {
             imag: self.imag.neg(),
         }
     }
+
+    pub fn omega_n(n: usize) -> Self {
+        let angle = core::f64::consts::TAU / n as f64;
+        Self::new(angle.cos(), -angle.sin())
+    }
+
+    pub fn omega_n_power(n: usize, pow: usize) -> Self {
+        let angle = ((pow % n) as f64 / n as f64) * core::f64::consts::TAU;
+        Self::new(angle.cos(), -angle.sin())
+    }
 }
 
 impl From<(Inner, Inner)> for Complex64 {
@@ -137,6 +147,16 @@ impl Neg for Complex64 {
             real: -self.real,
             imag: -self.imag,
         }
+    }
+}
+
+impl core::iter::Sum for Complex64 {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        let mut sum = Complex64::ZERO;
+        for item in iter {
+            sum += item;
+        }
+        sum
     }
 }
 

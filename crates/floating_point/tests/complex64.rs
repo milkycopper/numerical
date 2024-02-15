@@ -88,3 +88,9 @@ fn test_neg() {
     let a = Complex64::new(0.3, -0.4);
     assert_eq!(-(-a), a);
 }
+
+#[test]
+fn test_omega_n() {
+    assert!((-Complex64::I).abs_diff_eq(&Complex64::omega_n(4), f64::EPSILON.into()));
+    assert!((-Complex64::I).abs_diff_eq(&Complex64::omega_n_power(4, 5), f64::EPSILON.into()));
+}
